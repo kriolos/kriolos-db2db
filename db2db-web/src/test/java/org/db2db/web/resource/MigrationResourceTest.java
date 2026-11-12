@@ -35,4 +35,27 @@ class MigrationResourceTest {
                 .statusCode(200)
                 .body("transpiledSql", containsString("COALESCE(val, 0)"));
     }
+
+    @Test
+    void testSampleAssessmentEndpoint() {
+        given()
+            .when().get("/api/v1/assessment/sample")
+            .then()
+                .statusCode(200)
+                .body("schemaName", is("FINANCE_CORE"))
+                .body("databaseType", is("ORACLE"))
+                .body("difficultyLevel", is("HIGH"));
+    }
+
+    @Test
+    void testSampleAssessmentHtmlEndpoint() {
+        given()
+            .when().get("/api/v1/assessment/sample/html")
+            .then()
+                .statusCode(200)
+                .contentType(ContentType.HTML)
+                .body(containsString("db2db Migration Assessment"))
+                .body(containsString("FINANCE_CORE"))
+                .body(containsString("badge-HIGH"));
+    }
 }

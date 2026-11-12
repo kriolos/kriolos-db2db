@@ -44,7 +44,52 @@ class AssessmentEngineTest {
         assertThat(json).contains("\"schemaName\" : \"HR\"");
 
         String html = generator.toHtml(report);
-        assertThat(html).contains("<h1>db2db - Migration Assessment Report</h1>");
+        assertThat(html).contains("db2db Migration Assessment");
         assertThat(html).contains("badge-LOW");
+    }
+
+    @Test
+    void testShowcaseReportGeneration() throws IOException {
+        AssessmentEngine engine = new AssessmentEngine();
+        AssessmentReport report = engine.createSampleReport();
+
+        assertThat(report.getSchemaName()).isEqualTo("FINANCE_CORE");
+        assertThat(report.getDatabaseType()).isEqualTo("ORACLE");
+        assertThat(report.getTotalTables()).isEqualTo(84);
+        assertThat(report.getTotalRows()).isEqualTo(4_852_400L);
+        assertThat(report.getTotalPlSqlLines()).isEqualTo(8450);
+        assertThat(report.getDifficultyLevel()).isEqualTo("HIGH");
+        assertThat(report.getTotalMigrationCostUnits()).isGreaterThan(500.0);
+        assertThat(report.getEstimatedHumanDays()).isGreaterThan(10.0);
+
+        // Check records
+        assertThat(report.getTopTablesByRows()).isNotEmpty();
+        assertThat(report.getTopTablesByRows().getFirst().tableName()).isEqualTo("GL_TRANSACTIONS_PART");
+        assertThat(report.getTopTablesBySize()).isNotEmpty();
+        assertThat(report.getPlSqlDetail()).isNotNull();
+        assertThat(report.getPlSqlDetail().autonomousTransactions()).isEqualTo(3);
+        assertThat(report.getSpatialDetail()).isNotNull();
+        assertThat(report.getSpatialDetail().sdoGeometryColumns()).isEqualTo(4);
+        assertThat(report.getRecommendations()).hasSize(5);
+        assertThat(report.getReservedKeywordWarnings()).isNotEmpty();
+
+        AssessmentReportGenerator generator = new AssessmentReportGenerator();
+        String json = generator.toJson(report);
+        assertThat(json)
+                .contains("\"schemaName\" : \"FINANCE_CORE\"")
+                .contains("\"GL_TRANSACTIONS_PART\"")
+                .contains("\"autonomousTransactions\" : 3")
+                .contains("\"postGisExtensionRecommendation\"");
+
+        String html = generator.toHtml(report);
+        assertThat(html)
+                .contains("db2db Migration Assessment")
+                .contains("FINANCE_CORE")
+                .contains("badge-HIGH")
+                .contains("GL_TRANSACTIONS_PART")
+                .contains("Autonomous Tx")
+                .contains("PostGIS Geographic Conversion")
+                .contains("PostgreSQL Reserved Keyword Collisions")
+                .contains("Strategic Migration Recommendations");
     }
 }

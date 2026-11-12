@@ -119,9 +119,46 @@ public class Db2DbCliApplication implements Callable<Integer> {
         @Option(names = {"--format"}, defaultValue = "html", description = "Report format: html or json")
         private String format;
 
+        @Option(names = {"--sample", "--fake-report"}, description = "Generate a comprehensive showcase/fake assessment report illustrating all features without connecting to a database")
+        private boolean sample;
+
         @Override
         public Integer call() throws Exception {
             Db2DbConfig cfg = parent.resolveConfig();
+
+            if (sample) {
+                System.out.println("Generating comprehensive Showcase / Sample Assessment Report...");
+                AssessmentEngine engine = new AssessmentEngine();
+                AssessmentReport report = engine.createSampleReport();
+                AssessmentReportGenerator reportGen = new AssessmentReportGenerator();
+                File outDir = new File(cfg.getOutputPath());
+                outDir.mkdirs();
+
+                if ("json".equalsIgnoreCase(format)) {
+                    File outFile = new File(outDir, "assessment_report.json");
+                    try (FileWriter fw = new FileWriter(outFile)) {
+                        fw.write(reportGen.toJson(report));
+                    }
+                    System.out.println("JSON Showcase Assessment report written to: " + outFile.getAbsolutePath());
+                } else {
+                    File outFile = new File(outDir, "assessment_report.html");
+                    try (FileWriter fw = new FileWriter(outFile)) {
+                        fw.write(reportGen.toHtml(report));
+                    }
+                    System.out.println("HTML Showcase Assessment report written to: " + outFile.getAbsolutePath());
+                }
+
+                System.out.println("\n--- Showcase Summary ---");
+                System.out.println("Schema: " + report.getSchemaName());
+                System.out.println("Total Tables: " + report.getTotalTables());
+                System.out.println("Total Rows: " + String.format("%,d", report.getTotalRows()));
+                System.out.println("Total PL/SQL Lines: " + report.getTotalPlSqlLines());
+                System.out.println("Total Migration Cost Units: " + report.getTotalMigrationCostUnits());
+                System.out.println("Estimated Effort: " + report.getEstimatedHumanDays() + " human-days");
+                System.out.println("Difficulty Level: " + report.getDifficultyLevel());
+                return 0;
+            }
+
             System.out.println("Analyzing schema: " + cfg.getSourceSchema() + " from " + cfg.getSourceDsn());
 
             try (Connection conn = DriverManager.getConnection(cfg.getSourceDsn(), cfg.getSourceUser(), cfg.getSourcePassword())) {

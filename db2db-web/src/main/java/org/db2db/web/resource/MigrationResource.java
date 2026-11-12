@@ -87,6 +87,22 @@ public class MigrationResource {
         return Response.ok(new ConnectionTestResponse(sourceOk, sourceMsg, targetOk, targetMsg)).build();
     }
 
+    @GET
+    @Path("/assessment/sample")
+    public Response getSampleAssessment() {
+        var report = assessmentEngine.createSampleReport();
+        return Response.ok(report).build();
+    }
+
+    @GET
+    @Path("/assessment/sample/html")
+    @Produces(MediaType.TEXT_HTML)
+    public Response getSampleAssessmentHtml() {
+        var report = assessmentEngine.createSampleReport();
+        var generator = new org.db2db.core.assessment.AssessmentReportGenerator();
+        return Response.ok(generator.toHtml(report)).build();
+    }
+
     @POST
     @Path("/assessment")
     public Response runAssessment(AssessmentRequest request) {

@@ -140,7 +140,15 @@ END;
                         <input type="text" id="assessSchema" value="HR">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="runAssessment()">Evaluate Schema</button>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <button class="btn-primary" onclick="runAssessment()">Evaluate Live Schema</button>
+                    <button class="btn-secondary" onclick="loadShowcaseAssessment()" style="background:#0284c7; color:white; border:none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        📊 Load Showcase Data in Dashboard
+                    </button>
+                    <button class="btn-secondary" onclick="openShowcaseReport()" style="background:#4f46e5; color:white; border:none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        🚀 Open Full Showcase Report (HTML)
+                    </button>
+                </div>
             </div>
 
             <div id="assessmentResults" style="display:none;">
@@ -258,6 +266,34 @@ END;
             `;
         }
 
+        function openShowcaseReport() {
+            window.open('/api/v1/assessment/sample/html', '_blank');
+        }
+
+        async function loadShowcaseAssessment() {
+            const res = await fetch('/api/v1/assessment/sample');
+            if (res.ok) {
+                const data = await res.json();
+                renderAssessmentData(data);
+            } else {
+                alert('Failed to load showcase assessment data.');
+            }
+        }
+
+        function renderAssessmentData(data) {
+            document.getElementById('assessmentResults').style.display = 'block';
+            document.getElementById('resUnits').innerText = data.totalMigrationCostUnits;
+            document.getElementById('resDays').innerText = data.estimatedHumanDays;
+            document.getElementById('resLevel').innerText = data.difficultyLevel;
+            document.getElementById('resObjects').innerText = (data.totalTables || 0) + ' / ' + (data.totalViews || 0);
+
+            const tbody = document.querySelector('#inventoryTable tbody');
+            tbody.innerHTML = '';
+            for (const [key, val] of Object.entries(data.objectCountByType || {})) {
+                tbody.innerHTML += `<tr><td>${key}</td><td>${val}</td></tr>`;
+            }
+        }
+
         async function runAssessment() {
             const body = {
                 sourceDsn: document.getElementById('assessDsn').value,
@@ -270,17 +306,7 @@ END;
             });
             if (res.ok) {
                 const data = await res.json();
-                document.getElementById('assessmentResults').style.display = 'block';
-                document.getElementById('resUnits').innerText = data.totalMigrationCostUnits;
-                document.getElementById('resDays').innerText = data.estimatedHumanDays;
-                document.getElementById('resLevel').innerText = data.difficultyLevel;
-                document.getElementById('resObjects').innerText = (data.totalTables || 0) + ' / ' + (data.totalViews || 0);
-
-                const tbody = document.querySelector('#inventoryTable tbody');
-                tbody.innerHTML = '';
-                for (const [key, val] of Object.entries(data.objectCountByType || {})) {
-                    tbody.innerHTML += `<tr><td>${key}</td><td>${val}</td></tr>`;
-                }
+                renderAssessmentData(data);
             } else {
                 alert('Assessment failed or connection error.');
             }
