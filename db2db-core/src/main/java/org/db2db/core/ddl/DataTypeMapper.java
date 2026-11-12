@@ -13,6 +13,7 @@ public class DataTypeMapper {
 
     private final Db2DbConfig config;
     private final MySqlDataTypeMapper mySqlMapper = new MySqlDataTypeMapper();
+    private final MssqlDataTypeMapper mssqlMapper = new MssqlDataTypeMapper();
 
     public DataTypeMapper(Db2DbConfig config) {
         this.config = config != null ? config : new Db2DbConfig();
@@ -31,6 +32,15 @@ public class DataTypeMapper {
         // Custom user overrides
         if (config.getCustomTypeMap().containsKey(rawType)) {
             return config.getCustomTypeMap().get(rawType);
+        }
+
+        // Microsoft SQL Server specific signatures
+        if (rawType.equals("BIT") || rawType.equals("MONEY") || rawType.equals("SMALLMONEY")
+                || rawType.equals("UNIQUEIDENTIFIER") || rawType.equals("DATETIME2")
+                || rawType.equals("DATETIMEOFFSET") || rawType.equals("SMALLDATETIME")
+                || rawType.equals("IMAGE") || rawType.equals("ROWVERSION") || rawType.contains("MAX")
+                || rawType.equals("HIERARCHYID") || rawType.equals("SQL_VARIANT")) {
+            return mssqlMapper.mapToPostgreSql(column);
         }
 
         // MySQL / MariaDB specific signatures

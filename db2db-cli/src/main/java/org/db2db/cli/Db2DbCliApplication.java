@@ -78,6 +78,8 @@ public class Db2DbCliApplication implements Callable<Integer> {
             return new OracleMetadataExtractor(config);
         } else if (dsn.contains("mysql") || dsn.contains("mariadb")) {
             return new org.db2db.core.extractor.MySqlMetadataExtractor(config);
+        } else if (dsn.contains("sqlserver") || dsn.contains("jtds") || dsn.contains("mssql")) {
+            return new org.db2db.core.extractor.MssqlMetadataExtractor(config);
         }
         return new JdbcMetadataExtractor(config);
     }
