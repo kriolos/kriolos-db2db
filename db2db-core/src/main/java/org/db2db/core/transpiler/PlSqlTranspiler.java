@@ -24,6 +24,7 @@ public class PlSqlTranspiler {
     private static final Pattern PATTERN_RAISE_APP_ERR = Pattern.compile("(?i)\\bRAISE_APPLICATION_ERROR\\s*\\(\\s*([^,]+)\\s*,\\s*([^)]+)\\s*\\)");
     private static final Pattern PATTERN_SQLCODE = Pattern.compile("(?i)\\bSQLCODE\\b");
     private static final Pattern PATTERN_OUTER_JOIN = Pattern.compile("([\\w.]+)\\s*=\\s*([\\w.]+)\\s*\\(\\+\\)");
+    private final org.db2db.core.spatial.SdoGeometryConverter spatialConverter = new org.db2db.core.spatial.SdoGeometryConverter();
 
     public String transpile(String plsql) {
         if (plsql == null || plsql.isBlank()) {
@@ -65,7 +66,27 @@ public class PlSqlTranspiler {
             result = joinMatcher.replaceAll("/* Transpiled outer-join: use LEFT OUTER JOIN $2 ON $1 = $2 */ $1 = $2");
         }
 
+        // 9. Transpile SDO_GEOMETRY literals into PostGIS ST_GeomFromEWKT
+        result = transpileSdoGeometry(result);
+
         return result;
+    }
+
+    public String transpileSdoGeometry(String input) {
+        if (!input.toUpperCase().contains("SDO_GEOMETRY")) return input;
+        var p = Pattern.compile("(?i)SDO_GEOMETRY\\s*\\([\\d\\s.,NULL()\\w-]+\\)");
+        var m = p.matcher(input);
+        var sb = new StringBuilder();
+        while (m.find()) {
+            var sdo = spatialConverter.parseSdoGeometrySql(m.group());
+            if (sdo != null) {
+                m.appendReplacement(sb, Matcher.quoteReplacement(spatialConverter.toPostGisSql(sdo)));
+            } else {
+                m.appendReplacement(sb, Matcher.quoteReplacement(m.group()));
+            }
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     /**
