@@ -189,11 +189,6 @@
             </div>
         </div>
         <div class="header-actions">
-            <div class="badges">
-                <span class="badge badge-jdk">JDK 25</span>
-                <span class="badge badge-quarkus">Quarkus 4</span>
-                <span class="badge badge-status">Virtual Threads</span>
-            </div>
             <button id="themeToggleBtn" onclick="toggleTheme()" class="btn-theme" title="Toggle Light / Dark theme">
                 <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark</span>
             </button>
@@ -598,7 +593,12 @@ END;
             <div class="card">
                 <div class="card-title">
                     <span>DB2DB by ZettaIS &bull; Enterprise Platform Architecture</span>
-                    <span class="badge badge-status">Version 1.0.0</span>
+                    <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                        <span class="badge badge-jdk">JDK 25</span>
+                        <span class="badge badge-quarkus">Quarkus 4</span>
+                        <span class="badge badge-status">Virtual Threads</span>
+                        <span class="badge" style="background:var(--bg-subtle); color:var(--text-muted); border:1px solid var(--border);">v1.0.0</span>
+                    </div>
                 </div>
                 <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
                     <strong>DB2DB by ZettaIS</strong> is a modern, high-performance database migration platform engineered from the ground up on OpenJDK 25 and Quarkus 4. It automates catalog introspection, semantic code transpilation, zero-lock parallel data streaming, and rigorous audit validation from Oracle (19c/21c), MySQL, and SQL Server to PostgreSQL (16/17+).
