@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>db2db - Database Migration Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg-base: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --border: #475569;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.5rem; }
+        .badges { display: flex; gap: 0.5rem; }
+        .badge { font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 9999px; text-transform: uppercase; }
+        .badge-jdk { background: #ea580c; color: white; }
+        .badge-quarkus { background: #c026d3; color: white; }
+        .badge-status { background: #059669; color: white; }
+
+        nav { background: #111827; border-bottom: 1px solid var(--border); display: flex; padding: 0 2rem; }
+        nav button { background: none; border: none; color: var(--text-muted); font-size: 0.95rem; font-weight: 500; padding: 1rem 1.25rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        nav button:hover { color: var(--text-main); }
+        nav button.active { color: #38bdf8; border-bottom-color: #38bdf8; font-weight: 600; }
+
+        main { flex: 1; padding: 2rem; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        
+        .stat-card { background: #1e293b; border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem; }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+        label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
+        input, select, textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.65rem 0.75rem; color: white; font-size: 0.9rem; margin-bottom: 1rem; }
+        textarea.code-editor { font-family: 'Fira Code', monospace; font-size: 0.85rem; min-height: 380px; resize: vertical; line-height: 1.5; }
+
+        button.btn-primary { background: var(--primary); color: white; border: none; border-radius: 0.375rem; padding: 0.65rem 1.25rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        button.btn-primary:hover { background: var(--primary-dark); }
+        button.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); border-radius: 0.375rem; padding: 0.65rem 1.25rem; font-weight: 600; cursor: pointer; }
+        button.btn-outline:hover { background: var(--bg-input); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { background: #0f172a; color: var(--text-muted); font-weight: 600; }
+        
+        .alert { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-success { background: #064e3b; border: 1px solid #059669; color: #a7f3d0; }
+        .alert-error { background: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">⚡ db2db <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); margin-left: 0.5rem;">Java ora2pg Engine</span></div>
+        <div class="badges">
+            <span class="badge badge-jdk">JDK 25</span>
+            <span class="badge badge-quarkus">Quarkus 4</span>
+            <span class="badge badge-status">Virtual Threads</span>
+        </div>
+    </header>
+
+    <nav>
+        <button class="active" onclick="showTab('tab-transpile')">PL/SQL Playground</button>
+        <button onclick="showTab('tab-assessment')">Schema Assessment</button>
+        <button onclick="showTab('tab-config')">Database Connections</button>
+        <button onclick="showTab('tab-ddl')">DDL Exporter</button>
+    </nav>
+
+    <main>
+        <!-- Tab 1: PL/SQL Transpiler Playground -->
+        <div id="tab-transpile" class="tab-content active">
+            <div class="card">
+                <div class="card-title">
+                    <span>Interactive PL/SQL to PL/pgSQL Code Transpiler</span>
+                    <button class="btn-primary" onclick="transpileCode()">Transpile Code</button>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Oracle PL/SQL Input</label>
+                        <textarea id="inputSql" class="code-editor" placeholder="Enter Oracle PL/SQL function, trigger, or package here...">-- Example: Oracle PL/SQL Function
+CREATE OR REPLACE FUNCTION get_emp_salary(p_emp_id NUMBER)
+RETURN NUMBER IS
+    v_salary NUMBER(10,2);
+    v_comm   NUMBER(10,2);
+BEGIN
+    SELECT salary, NVL(commission_pct, 0)
+    INTO v_salary, v_comm
+    FROM employees e, departments d
+    WHERE e.dept_id = d.dept_id(+)
+      AND e.emp_id = p_emp_id;
+
+    RETURN v_salary + (v_salary * v_comm);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Employee not found');
+    WHEN OTHERS THEN
+        dbms_output.put_line(SQLCODE);
+        RETURN 0;
+END;
+</textarea>
+                    </div>
+                    <div>
+                        <label>PostgreSQL PL/pgSQL Transpiled Output</label>
+                        <textarea id="outputSql" class="code-editor" readonly placeholder="Transpiled PostgreSQL code will appear here..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Migration Assessment -->
+        <div id="tab-assessment" class="tab-content">
+            <div class="card">
+                <div class="card-title">Run Migration Cost & Complexity Assessment</div>
+                <div class="grid-2">
+                    <div>
+                        <label>Source JDBC DSN</label>
+                        <input type="text" id="assessDsn" value="jdbc:oracle:thin:@localhost:1521/XE">
+                    </div>
+                    <div>
+                        <label>Schema Name</label>
+                        <input type="text" id="assessSchema" value="HR">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="runAssessment()">Evaluate Schema</button>
+            </div>
+
+            <div id="assessmentResults" style="display:none;">
+                <div class="grid-4">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Migration Units</div>
+                        <div class="stat-value" id="resUnits">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Estimated Effort</div>
+                        <div class="stat-value" id="resDays">0 <span style="font-size: 1rem; color: var(--text-muted);">days</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Difficulty Level</div>
+                        <div class="stat-value" id="resLevel">LOW</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Tables / Views</div>
+                        <div class="stat-value" id="resObjects">0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Catalog Inventory Breakdown</div>
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr><th>Object Type</th><th>Count</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Database Connections -->
+        <div id="tab-config" class="tab-content">
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Source Database (Oracle / MySQL)</div>
+                    <label>JDBC URL</label>
+                    <input type="text" id="cfgSrcDsn" value="jdbc:oracle:thin:@localhost:1521/XE">
+                    <label>Username</label>
+                    <input type="text" id="cfgSrcUser" value="SYSTEM">
+                    <label>Password</label>
+                    <input type="password" id="cfgSrcPwd" value="">
+                </div>
+                <div class="card">
+                    <div class="card-title">Target Database (PostgreSQL)</div>
+                    <label>JDBC URL</label>
+                    <input type="text" id="cfgTgtDsn" value="jdbc:postgresql://localhost:5432/postgres">
+                    <label>Username</label>
+                    <input type="text" id="cfgTgtUser" value="postgres">
+                    <label>Password</label>
+                    <input type="password" id="cfgTgtPwd" value="">
+                </div>
+            </div>
+            <div id="connStatus"></div>
+            <button class="btn-primary" onclick="testConnection()">Test Both Connections</button>
+        </div>
+
+        <!-- Tab 4: DDL Exporter -->
+        <div id="tab-ddl" class="tab-content">
+            <div class="card">
+                <div class="card-title">
+                    <span>Export PostgreSQL Schema DDL</span>
+                    <button class="btn-primary" onclick="generateDdl()">Generate DDL</button>
+                </div>
+                <textarea id="ddlOutput" class="code-editor" readonly placeholder="Generated PostgreSQL DDL script will be shown here..."></textarea>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function transpileCode() {
+            const sql = document.getElementById('inputSql').value;
+            const res = await fetch('/api/v1/transpile', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({sql: sql})
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('outputSql').value = data.transpiledSql;
+            } else {
+                alert('Error transpiling SQL');
+            }
+        }
+
+        async function testConnection() {
+            const body = {
+                sourceDsn: document.getElementById('cfgSrcDsn').value,
+                sourceUser: document.getElementById('cfgSrcUser').value,
+                sourcePassword: document.getElementById('cfgSrcPwd').value,
+                targetDsn: document.getElementById('cfgTgtDsn').value,
+                targetUser: document.getElementById('cfgTgtUser').value,
+                targetPassword: document.getElementById('cfgTgtPwd').value
+            };
+            const res = await fetch('/api/v1/connection/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            const statusDiv = document.getElementById('connStatus');
+            statusDiv.innerHTML = `
+                <div class="alert ${data.sourceOk ? 'alert-success' : 'alert-error'}">Source: ${data.sourceMessage || 'Not tested'}</div>
+                <div class="alert ${data.targetOk ? 'alert-success' : 'alert-error'}">Target: ${data.targetMessage || 'Not tested'}</div>
+            `;
+        }
+
+        async function runAssessment() {
+            const body = {
+                sourceDsn: document.getElementById('assessDsn').value,
+                schema: document.getElementById('assessSchema').value
+            };
+            const res = await fetch('/api/v1/assessment', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('assessmentResults').style.display = 'block';
+                document.getElementById('resUnits').innerText = data.totalMigrationCostUnits;
+                document.getElementById('resDays').innerText = data.estimatedHumanDays;
+                document.getElementById('resLevel').innerText = data.difficultyLevel;
+                document.getElementById('resObjects').innerText = (data.totalTables || 0) + ' / ' + (data.totalViews || 0);
+
+                const tbody = document.querySelector('#inventoryTable tbody');
+                tbody.innerHTML = '';
+                for (const [key, val] of Object.entries(data.objectCountByType || {})) {
+                    tbody.innerHTML += `<tr><td>${key}</td><td>${val}</td></tr>`;
+                }
+            } else {
+                alert('Assessment failed or connection error.');
+            }
+        }
+
+        async function generateDdl() {
+            const body = {
+                sourceDsn: document.getElementById('cfgSrcDsn').value,
+                sourceUser: document.getElementById('cfgSrcUser').value,
+                sourcePassword: document.getElementById('cfgSrcPwd').value,
+                schema: 'HR'
+            };
+            const res = await fetch('/api/v1/export/schema', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            const text = await res.text();
+            document.getElementById('ddlOutput').value = text;
+        }
+    </script>
+</body>
+</html>
