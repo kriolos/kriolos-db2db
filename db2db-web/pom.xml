@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.db2db</groupId>
+        <groupId>com.zettais.db2db</groupId>
         <artifactId>db2db-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -17,8 +17,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.db2db</groupId>
+            <groupId>com.zettais.db2db</groupId>
             <artifactId>db2db-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-oracle</artifactId>
         </dependency>
 
         <dependency>

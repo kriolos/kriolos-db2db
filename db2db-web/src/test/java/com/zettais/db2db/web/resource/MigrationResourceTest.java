@@ -1,0 +1,75 @@
+package com.zettais.db2db.web.resource;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import com.zettais.db2db.web.dto.TranspileRequest;
+import org.junit.jupiter.api.Test;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+
+@QuarkusTest
+class MigrationResourceTest {
+
+    @Test
+    void testHealthEndpoint() {
+        given()
+            .when().get("/api/v1/health")
+            .then()
+                .statusCode(200)
+                .body("status", is("UP"))
+                .body("engine", is("db2db Enterprise Migration Platform"))
+                .body("virtualThreads", is("supported"));
+    }
+
+    @Test
+    void testTranspileEndpoint() {
+        var req = new TranspileRequest("SELECT NVL(val, 0) FROM DUAL;");
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(req)
+            .when().post("/api/v1/transpile")
+            .then()
+                .statusCode(200)
+                .body("transpiledSql", containsString("COALESCE(val, 0)"));
+    }
+
+    @Test
+    void testSampleAssessmentEndpoint() {
+        given()
+            .when().get("/api/v1/assessment/sample")
+            .then()
+                .statusCode(200)
+                .body("schemaName", is("FINANCE_CORE"))
+                .body("databaseType", is("ORACLE"))
+                .body("difficultyLevel", is("HIGH"));
+    }
+
+    @Test
+    void testSampleAssessmentHtmlEndpoint() {
+        given()
+            .when().get("/api/v1/assessment/sample/html")
+            .then()
+                .statusCode(200)
+                .contentType(ContentType.HTML)
+                .body(containsString("DB2DB Migration Assessment"))
+                .body(containsString("FINANCE_CORE"))
+                .body(containsString("badge-HIGH"));
+    }
+
+    @Test
+    void testLiveAssessmentHtmlEndpointErrorHandling() {
+        given()
+            .queryParam("dsn", "jdbc:oracle:thin:@invalid-host:1521/XEPDB1")
+            .queryParam("user", "test")
+            .queryParam("password", "test")
+            .queryParam("schema", "TEST")
+            .when().get("/api/v1/assessment/live/html")
+            .then()
+                .statusCode(400)
+                .contentType(ContentType.HTML)
+                .body(containsString("Database Assessment Connection Failed"));
+    }
+}
