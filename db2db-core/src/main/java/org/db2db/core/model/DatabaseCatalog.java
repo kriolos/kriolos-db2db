@@ -5,6 +5,7 @@ import java.util.List;
 
 public class DatabaseCatalog {
     private String schemaName;
+    private DatabaseDialect dialect = DatabaseDialect.ORACLE;
     private List<Table> tables = new ArrayList<>();
     private List<Sequence> sequences = new ArrayList<>();
     private List<View> views = new ArrayList<>();
@@ -20,6 +21,8 @@ public class DatabaseCatalog {
 
     public String getSchemaName() { return schemaName; }
     public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
+    public DatabaseDialect getDialect() { return dialect; }
+    public void setDialect(DatabaseDialect dialect) { this.dialect = dialect; }
     public List<Table> getTables() { return tables; }
     public void setTables(List<Table> tables) { this.tables = tables; }
     public List<Sequence> getSequences() { return sequences; }
