@@ -14,20 +14,13 @@ public class PartitionInfo {
     private List<String> partitionColumns = new ArrayList<>();
     private List<PartitionElement> partitions = new ArrayList<>();
 
-    public static class PartitionElement {
-        private String name;
-        private String boundValue; // e.g. LESS THAN (...) or VALUES IN (...)
-        private String highValue;
-
+    /**
+     * Modern Java Record representing a partition element.
+     */
+    public record PartitionElement(String name, String boundValue, String highValue) {
         public PartitionElement(String name, String boundValue) {
-            this.name = name;
-            this.boundValue = boundValue;
+            this(name, boundValue, null);
         }
-
-        public String getName() { return name; }
-        public String getBoundValue() { return boundValue; }
-        public String getHighValue() { return highValue; }
-        public void setHighValue(String highValue) { this.highValue = highValue; }
     }
 
     public PartitionType getType() { return type; }

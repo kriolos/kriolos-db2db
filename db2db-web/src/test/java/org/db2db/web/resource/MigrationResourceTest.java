@@ -19,13 +19,13 @@ class MigrationResourceTest {
             .then()
                 .statusCode(200)
                 .body("status", is("UP"))
-                .body("engine", is("db2db Enterprise Migration Platform"));
+                .body("engine", is("db2db Enterprise Migration Platform"))
+                .body("virtualThreads", is("supported"));
     }
 
     @Test
     void testTranspileEndpoint() {
-        TranspileRequest req = new TranspileRequest();
-        req.setSql("SELECT NVL(val, 0) FROM DUAL;");
+        var req = new TranspileRequest("SELECT NVL(val, 0) FROM DUAL;");
 
         given()
             .contentType(ContentType.JSON)

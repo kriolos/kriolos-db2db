@@ -149,28 +149,25 @@ public class PostgreSqlDdlGenerator {
     }
 
     public String generateSequenceDdl(Sequence seq) {
-        String targetSchema = config.getTargetSchema() != null && !config.getTargetSchema().isEmpty()
+        var targetSchema = config.getTargetSchema() != null && !config.getTargetSchema().isEmpty()
                 ? config.getTargetSchema() : "public";
-        String name = targetSchema + "." + seq.getName().toLowerCase();
+        var name = targetSchema + "." + seq.getName().toLowerCase();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("CREATE SEQUENCE ").append(name)
-          .append(" INCREMENT BY ").append(seq.getIncrementBy())
-          .append(" MINVALUE ").append(seq.getMinValue())
-          .append(" MAXVALUE ").append(seq.getMaxValue())
-          .append(" START WITH ").append(seq.getLastNumber());
-
-        if (seq.isCycle()) {
-            sb.append(" CYCLE");
-        } else {
-            sb.append(" NO CYCLE");
-        }
-
-        if (seq.getCacheSize() > 1) {
-            sb.append(" CACHE ").append(seq.getCacheSize());
-        }
-        sb.append(";\n");
-        return sb.toString();
+        return """
+               CREATE SEQUENCE %s
+                   INCREMENT BY %s
+                   MINVALUE %s
+                   MAXVALUE %s
+                   START WITH %s%s%s;
+               """.formatted(
+                   name,
+                   seq.getIncrementBy(),
+                   seq.getMinValue(),
+                   seq.getMaxValue(),
+                   seq.getLastNumber(),
+                   seq.isCycle() ? " CYCLE" : " NO CYCLE",
+                   seq.getCacheSize() > 1 ? " CACHE " + seq.getCacheSize() : ""
+               );
     }
 
     public String generateViewDdl(View view) {

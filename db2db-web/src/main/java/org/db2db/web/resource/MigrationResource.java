@@ -17,7 +17,6 @@ import org.db2db.web.dto.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.HashMap;
 import java.util.Map;
 
 @Path("/api/v1")
@@ -31,78 +30,83 @@ public class MigrationResource {
     @GET
     @Path("/health")
     public Response health() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("status", "UP");
-        status.put("engine", "db2db Enterprise Migration Platform");
-        status.put("version", "1.0.0");
-        status.put("jdk", System.getProperty("java.version"));
+        var status = Map.of(
+                "status", "UP",
+                "engine", "db2db Enterprise Migration Platform",
+                "version", "1.0.0",
+                "jdk", System.getProperty("java.version"),
+                "virtualThreads", "supported"
+        );
         return Response.ok(status).build();
     }
 
     @POST
     @Path("/transpile")
     public Response transpile(TranspileRequest request) {
-        if (request == null || request.getSql() == null) {
+        if (request == null || request.sql() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing SQL content").build();
         }
 
-        long start = System.currentTimeMillis();
-        String result = transpiler.transpile(request.getSql());
-        long elapsed = System.currentTimeMillis() - start;
+        var start = System.currentTimeMillis();
+        var result = transpiler.transpile(request.sql());
+        var elapsed = System.currentTimeMillis() - start;
 
-        return Response.ok(new TranspileResponse(request.getSql(), result, elapsed)).build();
+        return Response.ok(new TranspileResponse(request.sql(), result, elapsed)).build();
     }
 
     @POST
     @Path("/connection/test")
     public Response testConnection(ConnectionTestRequest request) {
-        ConnectionTestResponse resp = new ConnectionTestResponse();
+        boolean sourceOk = false;
+        String sourceMsg = "Not tested";
+        boolean targetOk = false;
+        String targetMsg = "Not tested";
 
         // Source test
-        if (request.getSourceDsn() != null && !request.getSourceDsn().isBlank()) {
-            try (Connection conn = DriverManager.getConnection(request.getSourceDsn(), request.getSourceUser(), request.getSourcePassword())) {
-                resp.setSourceOk(true);
-                resp.setSourceMessage("Connected: " + conn.getMetaData().getDatabaseProductName() + " " + conn.getMetaData().getDatabaseProductVersion());
+        if (request.sourceDsn() != null && !request.sourceDsn().isBlank()) {
+            try (Connection conn = DriverManager.getConnection(request.sourceDsn(), request.sourceUser(), request.sourcePassword())) {
+                sourceOk = true;
+                sourceMsg = "Connected: " + conn.getMetaData().getDatabaseProductName() + " " + conn.getMetaData().getDatabaseProductVersion();
             } catch (Exception e) {
-                resp.setSourceOk(false);
-                resp.setSourceMessage("Failed: " + e.getMessage());
+                sourceOk = false;
+                sourceMsg = "Failed: " + e.getMessage();
             }
         }
 
         // Target test
-        if (request.getTargetDsn() != null && !request.getTargetDsn().isBlank()) {
-            try (Connection conn = DriverManager.getConnection(request.getTargetDsn(), request.getTargetUser(), request.getTargetPassword())) {
-                resp.setTargetOk(true);
-                resp.setTargetMessage("Connected: " + conn.getMetaData().getDatabaseProductName() + " " + conn.getMetaData().getDatabaseProductVersion());
+        if (request.targetDsn() != null && !request.targetDsn().isBlank()) {
+            try (Connection conn = DriverManager.getConnection(request.targetDsn(), request.targetUser(), request.targetPassword())) {
+                targetOk = true;
+                targetMsg = "Connected: " + conn.getMetaData().getDatabaseProductName() + " " + conn.getMetaData().getDatabaseProductVersion();
             } catch (Exception e) {
-                resp.setTargetOk(false);
-                resp.setTargetMessage("Failed: " + e.getMessage());
+                targetOk = false;
+                targetMsg = "Failed: " + e.getMessage();
             }
         }
 
-        return Response.ok(resp).build();
+        return Response.ok(new ConnectionTestResponse(sourceOk, sourceMsg, targetOk, targetMsg)).build();
     }
 
     @POST
     @Path("/assessment")
     public Response runAssessment(AssessmentRequest request) {
-        if (request == null || request.getSourceDsn() == null) {
+        if (request == null || request.sourceDsn() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing source connection details").build();
         }
 
-        Db2DbConfig config = new Db2DbConfig();
-        config.setSourceDsn(request.getSourceDsn());
-        config.setSourceUser(request.getSourceUser());
-        config.setSourcePassword(request.getSourcePassword());
-        config.setSourceSchema(request.getSchema());
+        var config = new Db2DbConfig();
+        config.setSourceDsn(request.sourceDsn());
+        config.setSourceUser(request.sourceUser());
+        config.setSourcePassword(request.sourcePassword());
+        config.setSourceSchema(request.schema());
 
-        try (Connection conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
+        try (var conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
             MetadataExtractor extractor = config.getSourceDsn().toLowerCase().contains("oracle")
                     ? new OracleMetadataExtractor(config)
                     : new JdbcMetadataExtractor(config);
 
-            DatabaseCatalog catalog = extractor.extractCatalog(conn, config.getSourceSchema());
-            AssessmentReport report = assessmentEngine.assess(catalog);
+            var catalog = extractor.extractCatalog(conn, config.getSourceSchema());
+            var report = assessmentEngine.assess(catalog);
             return Response.ok(report).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -115,22 +119,27 @@ public class MigrationResource {
     @Path("/export/schema")
     @Produces(MediaType.TEXT_PLAIN)
     public Response exportSchema(AssessmentRequest request) {
-        Db2DbConfig config = new Db2DbConfig();
-        config.setSourceDsn(request.getSourceDsn());
-        config.setSourceUser(request.getSourceUser());
-        config.setSourcePassword(request.getSourcePassword());
-        config.setSourceSchema(request.getSchema());
+        var config = new Db2DbConfig();
+        config.setSourceDsn(request.sourceDsn());
+        config.setSourceUser(request.sourceUser());
+        config.setSourcePassword(request.sourcePassword());
+        config.setSourceSchema(request.schema());
 
-        try (Connection conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
+        try (var conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
             MetadataExtractor extractor = config.getSourceDsn().toLowerCase().contains("oracle")
                     ? new OracleMetadataExtractor(config)
                     : new JdbcMetadataExtractor(config);
 
-            DatabaseCatalog catalog = extractor.extractCatalog(conn, config.getSourceSchema());
-            PostgreSqlDdlGenerator generator = new PostgreSqlDdlGenerator(config);
+            var catalog = extractor.extractCatalog(conn, config.getSourceSchema());
+            var generator = new PostgreSqlDdlGenerator(config);
 
-            StringBuilder ddl = new StringBuilder("-- Generated by db2db Engine for Schema: ")
-                    .append(config.getSourceSchema()).append("\n\n");
+            var ddl = new StringBuilder("""
+                    -- ==============================================================
+                    -- Generated by db2db Engine (Java modern implementation of ora2pg)
+                    -- Target Schema: %s
+                    -- ==============================================================
+                    
+                    """.formatted(config.getSourceSchema()));
 
             for (Table t : catalog.getTables()) {
                 ddl.append(generator.generateTableDdl(t)).append("\n");
