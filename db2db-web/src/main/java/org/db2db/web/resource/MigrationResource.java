@@ -101,9 +101,7 @@ public class MigrationResource {
         config.setSourceSchema(request.schema());
 
         try (var conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
-            MetadataExtractor extractor = config.getSourceDsn().toLowerCase().contains("oracle")
-                    ? new OracleMetadataExtractor(config)
-                    : new JdbcMetadataExtractor(config);
+            MetadataExtractor extractor = resolveExtractor(config);
 
             var catalog = extractor.extractCatalog(conn, config.getSourceSchema());
             var report = assessmentEngine.assess(catalog);
@@ -126,9 +124,7 @@ public class MigrationResource {
         config.setSourceSchema(request.schema());
 
         try (var conn = DriverManager.getConnection(config.getSourceDsn(), config.getSourceUser(), config.getSourcePassword())) {
-            MetadataExtractor extractor = config.getSourceDsn().toLowerCase().contains("oracle")
-                    ? new OracleMetadataExtractor(config)
-                    : new JdbcMetadataExtractor(config);
+            MetadataExtractor extractor = resolveExtractor(config);
 
             var catalog = extractor.extractCatalog(conn, config.getSourceSchema());
             var generator = new PostgreSqlDdlGenerator(config);
@@ -159,5 +155,15 @@ public class MigrationResource {
                     .entity("Error generating DDL: " + e.getMessage())
                     .build();
         }
+    }
+
+    private MetadataExtractor resolveExtractor(Db2DbConfig config) {
+        String dsn = config.getSourceDsn().toLowerCase();
+        if (dsn.contains("oracle")) {
+            return new OracleMetadataExtractor(config);
+        } else if (dsn.contains("mysql") || dsn.contains("mariadb")) {
+            return new org.db2db.core.extractor.MySqlMetadataExtractor(config);
+        }
+        return new JdbcMetadataExtractor(config);
     }
 }

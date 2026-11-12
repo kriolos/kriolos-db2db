@@ -12,6 +12,7 @@ import java.util.Locale;
 public class DataTypeMapper {
 
     private final Db2DbConfig config;
+    private final MySqlDataTypeMapper mySqlMapper = new MySqlDataTypeMapper();
 
     public DataTypeMapper(Db2DbConfig config) {
         this.config = config != null ? config : new Db2DbConfig();
@@ -30,6 +31,14 @@ public class DataTypeMapper {
         // Custom user overrides
         if (config.getCustomTypeMap().containsKey(rawType)) {
             return config.getCustomTypeMap().get(rawType);
+        }
+
+        // MySQL / MariaDB specific signatures
+        if (rawType.contains("UNSIGNED") || rawType.contains("TINYINT") || rawType.contains("MEDIUMINT")
+                || rawType.contains("TEXT") || rawType.contains("BLOB") || rawType.equals("DATETIME")
+                || rawType.equals("YEAR") || rawType.equals("JSON") || rawType.startsWith("ENUM")
+                || rawType.startsWith("SET") || rawType.equals("BOOL") || rawType.equals("BOOLEAN")) {
+            return mySqlMapper.mapToPostgreSql(column);
         }
 
         // Numeric types

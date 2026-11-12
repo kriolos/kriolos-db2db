@@ -73,8 +73,11 @@ public class Db2DbCliApplication implements Callable<Integer> {
     }
 
     protected MetadataExtractor getExtractor(Db2DbConfig config) {
-        if (config.getSourceDsn().toLowerCase().contains("oracle")) {
+        String dsn = config.getSourceDsn().toLowerCase();
+        if (dsn.contains("oracle")) {
             return new OracleMetadataExtractor(config);
+        } else if (dsn.contains("mysql") || dsn.contains("mariadb")) {
+            return new org.db2db.core.extractor.MySqlMetadataExtractor(config);
         }
         return new JdbcMetadataExtractor(config);
     }
