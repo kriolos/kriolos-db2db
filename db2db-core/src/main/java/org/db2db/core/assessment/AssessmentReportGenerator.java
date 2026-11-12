@@ -195,8 +195,8 @@ public class AssessmentReportGenerator {
 <div class="container">
     <header>
         <div class="logo-box">
-            <h1>db2db Migration Assessment</h1>
-            <p>Database-to-Database Automated Analysis Engine (ora2pg modern Java port)</p>
+            <h1>DB2DB Migration Assessment</h1>
+            <p>Enterprise Database Migration & Analysis Platform &bull; DB2DB by ZettaIS</p>
         </div>
         <div class="meta-box">
             <p><strong>Target Schema:</strong> """).append(report.getSchemaName()).append("""
@@ -481,7 +481,7 @@ public class AssessmentReportGenerator {
 
         sb.append("""
     <footer>
-        <p>db2db Migration Engine v1.0.0 &bull; Powered by Modern Java 25 &bull; Quarkus 4 &bull; Inspired by ora2pg</p>
+        <p>DB2DB by ZettaIS v1.0.0 &bull; Powered by Modern Java 25 &bull; Quarkus 4</p>
     </footer>
 </div>
 </body>

@@ -7,7 +7,7 @@ import org.db2db.core.model.DatabaseDialect;
 import java.util.Locale;
 
 /**
- * Dedicated Oracle data type mapping strategy implementing Ora2Pg's Oracle.pm matrix.
+ * Dedicated Oracle data type mapping strategy for DB2DB by ZettaIS.
  */
 public final class OracleDataTypeMapper implements DialectDataTypeMapper {
 

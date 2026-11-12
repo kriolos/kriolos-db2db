@@ -6,8 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * High-performance Oracle SDO_GEOMETRY to PostGIS spatial converter.
- * Replicates the spatial geometry logic from Ora2Pg's GEOM.pm.
+ * High-performance Oracle SDO_GEOMETRY to PostGIS spatial converter for DB2DB by ZettaIS.
  */
 public class SdoGeometryConverter {
 

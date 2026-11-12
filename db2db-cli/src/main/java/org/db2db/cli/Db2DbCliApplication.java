@@ -28,7 +28,7 @@ import java.util.concurrent.Callable;
 @Command(name = "db2db",
         mixinStandardHelpOptions = true,
         version = "db2db 1.0.0 (JDK 25)",
-        description = "Enterprise Oracle & MySQL to PostgreSQL migration engine (Java implementation of ora2pg)",
+        description = "DB2DB by ZettaIS - Enterprise Multi-Dialect Database Migration Platform",
         subcommands = {
                 Db2DbCliApplication.TestConnectionCommand.class,
                 Db2DbCliApplication.AnalyzeCommand.class,
@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
         })
 public class Db2DbCliApplication implements Callable<Integer> {
 
-    @Option(names = {"-c", "--config"}, description = "Path to ora2pg.conf or db2db properties file")
+    @Option(names = {"-c", "--config"}, description = "Path to db2db configuration or properties file")
     protected File configFile;
 
     @Option(names = {"-s", "--schema"}, description = "Source schema name to extract")

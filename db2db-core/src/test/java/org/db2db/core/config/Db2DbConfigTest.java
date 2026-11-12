@@ -13,9 +13,9 @@ class Db2DbConfigTest {
 
     @Test
     void testConfigParsingAndFiltering(@TempDir Path tempDir) throws IOException {
-        Path configFile = tempDir.resolve("ora2pg.conf");
+        Path configFile = tempDir.resolve("db2db.conf");
         String content = """
-            # ora2pg compatibility configuration
+            # DB2DB configuration
             ORACLE_DSN  dbi:Oracle:host=oradb;sid=PROD;port=1521
             ORACLE_USER SCOTT
             ORACLE_PWD  TIGER

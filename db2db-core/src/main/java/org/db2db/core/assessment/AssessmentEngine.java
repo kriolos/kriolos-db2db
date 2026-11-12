@@ -7,11 +7,11 @@ import java.util.List;
 
 /**
  * Calculates migration assessment metrics, difficulty levels, and human-days cost
- * replicating Ora2Pg's estimation algorithm.
+ * for DB2DB by ZettaIS.
  */
 public class AssessmentEngine {
 
-    // Ora2Pg Migration Unit constants
+    // DB2DB Migration Unit constants
     private static final double COST_TABLE = 1.0;
     private static final double COST_COLUMN = 0.1;
     private static final double COST_CONSTRAINT = 0.5;

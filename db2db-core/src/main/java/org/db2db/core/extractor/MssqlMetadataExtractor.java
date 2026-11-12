@@ -11,8 +11,7 @@ import java.util.Map;
 
 /**
  * Dedicated Microsoft SQL Server metadata extractor querying INFORMATION_SCHEMA
- * and sys catalog views.
- * Replicates the metadata introspection logic from Ora2Pg's MSSQL.pm.
+ * and sys catalog views for DB2DB by ZettaIS.
  */
 public class MssqlMetadataExtractor implements MetadataExtractor {
 

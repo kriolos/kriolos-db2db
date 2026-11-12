@@ -7,7 +7,7 @@ import org.db2db.core.model.DatabaseDialect;
 import java.util.Locale;
 
 /**
- * Dedicated MySQL / MariaDB data type mapping strategy implementing Ora2Pg's MySQL.pm matrix.
+ * Dedicated MySQL / MariaDB data type mapping strategy for DB2DB by ZettaIS.
  */
 public final class MySqlDataTypeMapper implements DialectDataTypeMapper {
 

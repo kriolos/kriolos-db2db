@@ -9,8 +9,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Configuration holder for db2db migration engine.
- * Fully compatible with ora2pg.conf parameters while supporting modern Java properties.
+ * Configuration holder for DB2DB by ZettaIS migration platform.
+ * Supports standard properties files as well as legacy configuration syntax.
  */
 public class Db2DbConfig {
 

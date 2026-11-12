@@ -5,8 +5,7 @@ import java.util.regex.Pattern;
 
 /**
  * Transpiler that translates Oracle PL/SQL stored procedures, functions, packages,
- * triggers, and SQL expressions into PostgreSQL PL/pgSQL code.
- * Implements the core logic found in Ora2Pg's PLSQL.pm.
+ * triggers, and SQL expressions into PostgreSQL PL/pgSQL code for DB2DB by ZettaIS.
  */
 public class PlSqlTranspiler {
 

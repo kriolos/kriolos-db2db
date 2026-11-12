@@ -54,7 +54,7 @@ class MigrationResourceTest {
             .then()
                 .statusCode(200)
                 .contentType(ContentType.HTML)
-                .body(containsString("db2db Migration Assessment"))
+                .body(containsString("DB2DB Migration Assessment"))
                 .body(containsString("FINANCE_CORE"))
                 .body(containsString("badge-HIGH"));
     }
