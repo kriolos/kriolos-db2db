@@ -19,7 +19,7 @@ class Db2DbCliApplicationTest {
 
         int exitCode = cmd.execute("--help");
         assertThat(exitCode).isEqualTo(0);
-        assertThat(sw.toString()).contains("Enterprise Oracle & MySQL to PostgreSQL migration engine");
+        assertThat(sw.toString()).contains("DB2DB by ZettaIS");
         assertThat(sw.toString()).contains("test-connection");
         assertThat(sw.toString()).contains("analyze");
         assertThat(sw.toString()).contains("export-schema");

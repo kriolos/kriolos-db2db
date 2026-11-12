@@ -9,7 +9,7 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>db2db :: Parent</name>
-    <description>Enterprise Oracle/MySQL to PostgreSQL Database Migration Engine (Java implementation of ora2pg)</description>
+    <description>DB2DB by ZettaIS - Enterprise Multi-Dialect Database Migration Platform</description>
 
     <modules>
         <module>db2db-core</module>

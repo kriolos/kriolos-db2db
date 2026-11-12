@@ -44,7 +44,8 @@ class AssessmentEngineTest {
         assertThat(json).contains("\"schemaName\" : \"HR\"");
 
         String html = generator.toHtml(report);
-        assertThat(html).contains("db2db Migration Assessment");
+        assertThat(html).contains("DB2DB Migration Assessment");
+        assertThat(html).contains("DB2DB by ZettaIS");
         assertThat(html).contains("badge-LOW");
     }
 
@@ -83,7 +84,8 @@ class AssessmentEngineTest {
 
         String html = generator.toHtml(report);
         assertThat(html)
-                .contains("db2db Migration Assessment")
+                .contains("DB2DB Migration Assessment")
+                .contains("DB2DB by ZettaIS")
                 .contains("FINANCE_CORE")
                 .contains("badge-HIGH")
                 .contains("GL_TRANSACTIONS_PART")

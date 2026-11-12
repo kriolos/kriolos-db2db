@@ -7,7 +7,7 @@ import org.db2db.core.model.DatabaseDialect;
 import java.util.Locale;
 
 /**
- * Dedicated Microsoft SQL Server data type mapping strategy implementing Ora2Pg's MSSQL.pm matrix.
+ * Dedicated Microsoft SQL Server data type mapping strategy for DB2DB by ZettaIS.
  */
 public final class MssqlDataTypeMapper implements DialectDataTypeMapper {
 

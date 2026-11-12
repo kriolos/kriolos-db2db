@@ -16,7 +16,7 @@ public enum DatabaseDialect {
      */
     public static DatabaseDialect fromDsn(String dsn) {
         if (dsn == null || dsn.isBlank()) {
-            return ORACLE; // Default dialect matching ora2pg origins
+            return ORACLE; // Default dialect for DB2DB
         }
         var lower = dsn.toLowerCase(Locale.ROOT);
         if (lower.contains("oracle")) return ORACLE;

@@ -13,8 +13,8 @@ import java.util.Map;
 
 /**
  * Dedicated MySQL / MariaDB metadata extractor querying MySQL information_schema views:
- * TABLES, COLUMNS, TABLE_CONSTRAINTS, KEY_COLUMN_USAGE, STATISTICS, VIEWS, ROUTINES, and TRIGGERS.
- * Replicates the metadata introspection logic from Ora2Pg's MySQL.pm.
+ * TABLES, COLUMNS, TABLE_CONSTRAINTS, KEY_COLUMN_USAGE, STATISTICS, VIEWS, ROUTINES, and TRIGGERS
+ * for DB2DB by ZettaIS.
  */
 public class MySqlMetadataExtractor implements MetadataExtractor {
 
