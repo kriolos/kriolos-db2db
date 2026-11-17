@@ -14,25 +14,5 @@ public record StartWorkflowRequest(
         String mode,
         List<String> skippedSteps,
         Boolean stopOnError,
-        Integer parallelWorkers,
-        String language
-) {
-    public StartWorkflowRequest(
-            String sourceDsn,
-            String sourceUser,
-            String sourcePassword,
-            String sourceSchema,
-            String targetDsn,
-            String targetUser,
-            String targetPassword,
-            String targetSchema,
-            String mode,
-            List<String> skippedSteps,
-            Boolean stopOnError,
-            Integer parallelWorkers
-    ) {
-        this(sourceDsn, sourceUser, sourcePassword, sourceSchema,
-                targetDsn, targetUser, targetPassword, targetSchema,
-                mode, skippedSteps, stopOnError, parallelWorkers, "en");
-    }
-}
+        Integer parallelWorkers
+) {}

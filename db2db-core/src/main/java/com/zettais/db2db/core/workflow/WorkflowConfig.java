@@ -1,7 +1,5 @@
 package com.zettais.db2db.core.workflow;
 
-import com.zettais.db2db.core.i18n.Language;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,8 +21,7 @@ public record WorkflowConfig(
         Set<MigrationStepId> skippedSteps,
         boolean stopOnError,
         int parallelWorkers,
-        String outputDir,
-        Language language
+        String outputDir
 ) implements Serializable {
 
     public WorkflowConfig {
@@ -40,18 +37,6 @@ public record WorkflowConfig(
         skippedSteps = skippedSteps != null ? Set.copyOf(skippedSteps) : Collections.emptySet();
         if (parallelWorkers <= 0) parallelWorkers = 4;
         outputDir = outputDir != null && !outputDir.isBlank() ? outputDir : "./reports";
-        language = language != null ? language : Language.EN;
-    }
-
-    public WorkflowConfig(
-            String sourceDsn, String sourceUser, String sourcePassword, String sourceSchema,
-            String targetDsn, String targetUser, String targetPassword, String targetSchema,
-            WorkflowMode mode, Set<MigrationStepId> skippedSteps, boolean stopOnError,
-            int parallelWorkers, String outputDir
-    ) {
-        this(sourceDsn, sourceUser, sourcePassword, sourceSchema,
-                targetDsn, targetUser, targetPassword, targetSchema,
-                mode, skippedSteps, stopOnError, parallelWorkers, outputDir, Language.EN);
     }
 
     public static Builder builder() {
@@ -76,7 +61,6 @@ public record WorkflowConfig(
         private boolean stopOnError = true;
         private int parallelWorkers = 4;
         private String outputDir = "./reports";
-        private Language language = Language.EN;
 
         public Builder sourceDsn(String sourceDsn) { this.sourceDsn = sourceDsn; return this; }
         public Builder sourceUser(String sourceUser) { this.sourceUser = sourceUser; return this; }
@@ -92,13 +76,12 @@ public record WorkflowConfig(
         public Builder stopOnError(boolean stopOnError) { this.stopOnError = stopOnError; return this; }
         public Builder parallelWorkers(int parallelWorkers) { this.parallelWorkers = parallelWorkers; return this; }
         public Builder outputDir(String outputDir) { this.outputDir = outputDir; return this; }
-        public Builder language(Language language) { this.language = language; return this; }
 
         public WorkflowConfig build() {
             return new WorkflowConfig(
                     sourceDsn, sourceUser, sourcePassword, sourceSchema,
                     targetDsn, targetUser, targetPassword, targetSchema,
-                    mode, skippedSteps, stopOnError, parallelWorkers, outputDir, language
+                    mode, skippedSteps, stopOnError, parallelWorkers, outputDir
             );
         }
     }

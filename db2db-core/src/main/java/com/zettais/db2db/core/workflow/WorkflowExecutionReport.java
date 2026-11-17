@@ -1,7 +1,5 @@
 package com.zettais.db2db.core.workflow;
 
-import com.zettais.db2db.core.i18n.Language;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +20,7 @@ public record WorkflowExecutionReport(
         long totalDurationMs,
         boolean overallSuccess,
         List<StepExecutionRecord> stepRecords,
-        Map<String, Object> summaryMetrics,
-        Language language
+        Map<String, Object> summaryMetrics
 ) implements Serializable {
 
     public WorkflowExecutionReport {
@@ -32,19 +29,6 @@ public record WorkflowExecutionReport(
         if (totalDurationMs <= 0 && completedAtEpochMs > startedAtEpochMs && startedAtEpochMs > 0) {
             totalDurationMs = completedAtEpochMs - startedAtEpochMs;
         }
-        language = language != null ? language : Language.EN;
-    }
-
-    public WorkflowExecutionReport(
-            String migrationId, String sourceDatabase, String targetDatabase,
-            String sourceSchema, String targetSchema, WorkflowMode mode,
-            long startedAtEpochMs, long completedAtEpochMs, long totalDurationMs,
-            boolean overallSuccess, List<StepExecutionRecord> stepRecords,
-            Map<String, Object> summaryMetrics
-    ) {
-        this(migrationId, sourceDatabase, targetDatabase, sourceSchema, targetSchema,
-                mode, startedAtEpochMs, completedAtEpochMs, totalDurationMs,
-                overallSuccess, stepRecords, summaryMetrics, Language.EN);
     }
 
     public long getSuccessCount() {

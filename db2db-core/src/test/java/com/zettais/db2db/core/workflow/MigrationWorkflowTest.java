@@ -110,7 +110,7 @@ class MigrationWorkflowTest {
         String html = generator.toHtml(report);
         assertThat(html).contains("DB2DB by ZettaIS");
         assertThat(html).contains("MIG-TEST-123");
-        assertThat(html).contains("SUCCESS");
+        assertThat(html).contains("SUCCESSFUL MIGRATION");
         assertThat(html).contains("Pre-Flight Check");
         assertThat(html).contains("Schema Assessment");
         assertThat(html).doesNotContain("ora2pg");
