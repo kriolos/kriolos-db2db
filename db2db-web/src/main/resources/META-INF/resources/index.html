@@ -189,6 +189,9 @@
             </div>
         </div>
         <div class="header-actions">
+            <button id="langToggleBtn" onclick="toggleLanguage()" class="btn-theme" title="Switch Language (EN / PT)">
+                <span>🌐</span> <span id="langToggleText">PT</span>
+            </button>
             <button id="themeToggleBtn" onclick="toggleTheme()" class="btn-theme" title="Toggle Light / Dark theme">
                 <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark</span>
             </button>
@@ -210,44 +213,44 @@
         <div id="tab-workflow" class="tab-content active">
             <div class="card">
                 <div class="card-title">
-                    <span>🚀 End-to-End Database Migration Workflow</span>
+                    <span id="wfTitleText">🚀 End-to-End Database Migration Workflow</span>
                     <span id="wfStatusPill" class="badge" style="background:var(--bg-subtle); color:var(--text-muted); border:1px solid var(--border);">IDLE</span>
                 </div>
-                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+                <p id="wfSubtitleText" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
                     Execute full end-to-end multi-step migration with automated data streaming, constraint orchestration, sequence syncing, and validation.
                 </p>
 
                 <div class="grid-2">
                     <div>
-                        <label>Execution Mode</label>
+                        <label id="wfModeLabel">Execution Mode</label>
                         <select id="wfMode">
-                            <option value="AUTOMATIC" selected>⚡ Automatic (Unattended - Run all selected steps consecutively)</option>
-                            <option value="INTERACTIVE">🎯 Interactive (Step-by-Step - Pause for operator approval at each phase)</option>
+                            <option id="wfModeAuto" value="AUTOMATIC" selected>⚡ Automatic (Unattended - Run all selected steps consecutively)</option>
+                            <option id="wfModeInteractive" value="INTERACTIVE">🎯 Interactive (Step-by-Step - Pause for operator approval at each phase)</option>
                         </select>
 
                         <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1rem;">
                             <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0; cursor:pointer;">
                                 <input type="checkbox" id="wfStopOnError" checked style="width:auto; margin-bottom:0;">
-                                Stop immediately on step error
+                                <span id="wfStopOnErrorLabel">Stop immediately on step error</span>
                             </label>
                             <div style="flex:1;">
-                                <label style="margin-bottom:0.25rem;">Virtual Thread Workers</label>
+                                <label id="wfWorkersLabel" style="margin-bottom:0.25rem;">Virtual Thread Workers</label>
                                 <select id="wfWorkers" style="margin-bottom:0;">
-                                    <option value="2">2 Workers</option>
-                                    <option value="4" selected>4 Workers (Default)</option>
-                                    <option value="8">8 Workers</option>
-                                    <option value="16">16 Workers</option>
+                                    <option id="wfWorkers2" value="2">2 Workers</option>
+                                    <option id="wfWorkers4" value="4" selected>4 Workers (Default)</option>
+                                    <option id="wfWorkers8" value="8">8 Workers</option>
+                                    <option id="wfWorkers16" value="16">16 Workers</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label>Active Database Route</label>
+                        <label id="wfActiveRouteLabel">Active Database Route</label>
                         <div style="background:var(--bg-subtle); border:1px solid var(--border); border-radius:6px; padding:0.85rem; font-size:0.85rem; line-height:1.6;">
-                            <div><strong>Source:</strong> <span id="wfSrcPreview" style="color:var(--primary); font-family:'JetBrains Mono', monospace;">jdbc:oracle:thin:@localhost:1521/XEPDB1</span> (<span id="wfSrcUserPreview">OSADMIN</span>)</div>
-                            <div><strong>Target:</strong> <span id="wfTgtPreview" style="color:var(--success); font-family:'JetBrains Mono', monospace;">jdbc:postgresql://localhost:5432/postgres</span> (<span id="wfTgtUserPreview">postgres</span>)</div>
-                            <div style="font-size:0.75rem; color:var(--text-subtle); margin-top:0.35rem;">Manage credentials in <em>Database Connections</em> tab.</div>
+                            <div><strong id="wfSourceLabel">Source:</strong> <span id="wfSrcPreview" style="color:var(--primary); font-family:'JetBrains Mono', monospace;">jdbc:oracle:thin:@localhost:1521/XEPDB1</span> (<span id="wfSrcUserPreview">OSADMIN</span>)</div>
+                            <div><strong id="wfTargetLabel">Target:</strong> <span id="wfTgtPreview" style="color:var(--success); font-family:'JetBrains Mono', monospace;">jdbc:postgresql://localhost:5432/postgres</span> (<span id="wfTgtUserPreview">postgres</span>)</div>
+                            <div id="wfManageCredsHint" style="font-size:0.75rem; color:var(--text-subtle); margin-top:0.35rem;">Manage credentials in <em>Database Connections</em> tab.</div>
                         </div>
                     </div>
                 </div>
@@ -258,30 +261,19 @@
                         <div style="display:flex; align-items:center; gap:0.6rem;">
                             <label style="display:flex; align-items:center; gap:0.4rem; font-weight:700; margin-bottom:0; cursor:pointer; color:var(--text-main);">
                                 <input type="checkbox" id="wfSelectAllSteps" onchange="toggleAllSteps(this.checked)" checked style="width:auto; margin-bottom:0;">
-                                Select All Steps
+                                <span id="wfSelectAllLabel">Select All Steps</span>
                             </label>
                             <span id="wfSelectionBadge" class="badge badge-status">(12/12 enabled)</span>
                         </div>
                         <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-                            <button type="button" class="btn-xs" onclick="applyStepPreset('ALL')">✓ Select All</button>
-                            <button type="button" class="btn-xs" onclick="applyStepPreset('NONE')">⊘ Deselect All</button>
-                            <button type="button" class="btn-xs" onclick="applyStepPreset('SCHEMA_ONLY')">📋 Schema Only</button>
-                            <button type="button" class="btn-xs" onclick="applyStepPreset('DATA_ONLY')">⚡ Data Only</button>
+                            <button type="button" id="btnPresetAll" class="btn-xs" onclick="applyStepPreset('ALL')">✓ Select All</button>
+                            <button type="button" id="btnPresetNone" class="btn-xs" onclick="applyStepPreset('NONE')">⊘ Deselect All</button>
+                            <button type="button" id="btnPresetSchema" class="btn-xs" onclick="applyStepPreset('SCHEMA_ONLY')">📋 Schema Only</button>
+                            <button type="button" id="btnPresetData" class="btn-xs" onclick="applyStepPreset('DATA_ONLY')">⚡ Data Only</button>
                         </div>
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.5rem; font-size:0.85rem;">
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_PRE_FLIGHT_CHECK" checked onchange="updateStepSelectionCount()"> 1. Pre-Flight Check</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_SCHEMA_ASSESSMENT" checked onchange="updateStepSelectionCount()"> 2. Schema Assessment</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_PRE_SCHEMA_SETUP" checked onchange="updateStepSelectionCount()"> 3. Target Schema Setup</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_DDL_EXPORT" checked onchange="updateStepSelectionCount()"> 4. DDL Generation</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_DDL_APPLY" checked onchange="updateStepSelectionCount()"> 5. DDL Application</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_PARALLEL_DATA_STREAMING" checked onchange="updateStepSelectionCount()"> 6. Data Streaming</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_POST_DATA_INDEXES" checked onchange="updateStepSelectionCount()"> 7. Index Creation</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_FOREIGN_KEYS" checked onchange="updateStepSelectionCount()"> 8. Foreign Keys</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_PROCEDURAL_CODE" checked onchange="updateStepSelectionCount()"> 9. PL/SQL Transpilation</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_SEQUENCE_SYNC" checked onchange="updateStepSelectionCount()"> 10. Sequence Sync</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_DATA_VALIDATION_AUDIT" checked onchange="updateStepSelectionCount()"> 11. Data Validation</label>
-                        <label class="step-cb-label"><input type="checkbox" class="wf-step-cb" id="step_FINAL_AUDIT_REPORT" checked onchange="updateStepSelectionCount()"> 12. Final Audit Report</label>
+                    <div id="wfStepCheckboxesContainer" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.5rem; font-size:0.85rem;">
+                        <!-- Rendered dynamically from i18n bundle -->
                     </div>
                 </div>
 
@@ -407,19 +399,19 @@ END;
         <div id="tab-assessment" class="tab-content">
             <div class="card">
                 <div class="card-title">
-                    <span>Targeted Schema Assessment</span>
+                    <span id="assessTitleText">Targeted Schema Assessment</span>
                     <div style="display: flex; gap: 0.75rem;">
-                        <button class="btn-primary" onclick="runAssessment()">Run Live Assessment</button>
-                        <button class="btn-primary" onclick="openLiveReport()" style="background: #059669;">🚀 Open Full Standalone HTML</button>
+                        <button id="btnRunAssessment" class="btn-primary" onclick="runAssessment()">Run Live Assessment</button>
+                        <button id="btnOpenAssessmentReport" class="btn-primary" onclick="openLiveReport()" style="background: #059669;">🚀 Open Full Standalone HTML</button>
                     </div>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                <p id="assessDescText" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
                     Extract live metadata from the source database, evaluate structural complexity, count objects, and estimate migration effort in human-days.
                 </p>
                 
                 <div class="grid-2" style="margin-bottom: 1rem;">
                     <div>
-                        <label>Target Schema Name</label>
+                        <label id="assessSchemaLabel">Target Schema Name</label>
                         <input type="text" id="assessSchema" value="OSADMIN" placeholder="e.g. OSADMIN, HR, SYSTEM">
                     </div>
                     <div>
@@ -577,9 +569,9 @@ END;
         <div id="tab-ddl" class="tab-content">
             <div class="card">
                 <div class="card-title">
-                    <span>Export PostgreSQL Schema DDL</span>
+                    <span id="ddlTitleText">Export PostgreSQL Schema DDL</span>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-primary" onclick="generateDdl()">Generate DDL</button>
+                        <button id="btnGenerateDdl" class="btn-primary" onclick="generateDdl()">Generate DDL</button>
                         <button id="btnCopyDdl" class="btn-outline" onclick="copyDdlOutput()" title="Copy DDL to Clipboard">📋 Copy</button>
                         <button id="btnDownloadDdl" class="btn-outline" onclick="downloadDdlOutput()" title="Download DDL as SQL file">📥 Download</button>
                     </div>
@@ -592,7 +584,7 @@ END;
         <div id="tab-about" class="tab-content">
             <div class="card">
                 <div class="card-title">
-                    <span>DB2DB by ZettaIS &bull; Enterprise Platform Architecture</span>
+                    <span id="aboutTitleText">DB2DB by ZettaIS &bull; Enterprise Platform Architecture</span>
                     <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                         <span class="badge badge-jdk">JDK 25</span>
                         <span class="badge badge-quarkus">Quarkus 4</span>
@@ -600,32 +592,32 @@ END;
                         <span class="badge" style="background:var(--bg-subtle); color:var(--text-muted); border:1px solid var(--border);">v1.0.0</span>
                     </div>
                 </div>
-                <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+                <p id="aboutLeadText" style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
                     <strong>DB2DB by ZettaIS</strong> is a modern, high-performance database migration platform engineered from the ground up on OpenJDK 25 and Quarkus 4. It automates catalog introspection, semantic code transpilation, zero-lock parallel data streaming, and rigorous audit validation from Oracle (19c/21c), MySQL, and SQL Server to PostgreSQL (16/17+).
                 </p>
 
                 <div class="grid-2" style="margin-bottom: 1.5rem;">
                     <div class="pillar-card">
-                        <div class="pillar-title">⚡ Ultra-High Throughput Parallel Streaming</div>
-                        <div class="pillar-desc">
+                        <div id="aboutP1Title" class="pillar-title">⚡ Ultra-High Throughput Parallel Streaming</div>
+                        <div id="aboutP1Desc" class="pillar-desc">
                             Leverages JDK 25 Virtual Threads (<code style="font-family:'JetBrains Mono', monospace;">Executors.newVirtualThreadPerTaskExecutor()</code>) and PostgreSQL binary <code style="font-family:'JetBrains Mono', monospace;">CopyManager</code> streaming directly via piped memory buffers with zero intermediate file I/O overhead.
                         </div>
                     </div>
                     <div class="pillar-card">
-                        <div class="pillar-title">🧠 Semantic PL/SQL to PL/pgSQL Transpiler</div>
-                        <div class="pillar-desc">
+                        <div id="aboutP2Title" class="pillar-title">🧠 Semantic PL/SQL to PL/pgSQL Transpiler</div>
+                        <div id="aboutP2Desc" class="pillar-desc">
                             Automated transpilation engine rewriting Oracle packages into dedicated schema namespaces, procedures, functions, autonomous transactions (<code style="font-family:'JetBrains Mono', monospace;">dblink</code> / <code style="font-family:'JetBrains Mono', monospace;">pg_background</code>), dynamic SQL (<code style="font-family:'JetBrains Mono', monospace;">EXECUTE IMMEDIATE</code>), and SDO_GEOMETRY to PostGIS.
                         </div>
                     </div>
                     <div class="pillar-card">
-                        <div class="pillar-title">🔄 12-Step Industrial Workflow Lifecycle</div>
-                        <div class="pillar-desc">
+                        <div id="aboutP3Title" class="pillar-title">🔄 12-Step Industrial Workflow Lifecycle</div>
+                        <div id="aboutP3Desc" class="pillar-desc">
                             Enterprise state machine supporting unattended automatic runs or interactive step-by-step operator approvals, complete with selective phase skipping, sequence synchronizers, and cross-database row count audit reconciliation.
                         </div>
                     </div>
                     <div class="pillar-card">
-                        <div class="pillar-title">📊 Assessment Scoring & Executive Audits</div>
-                        <div class="pillar-desc">
+                        <div id="aboutP4Title" class="pillar-title">📊 Assessment Scoring & Executive Audits</div>
+                        <div id="aboutP4Desc" class="pillar-desc">
                             Generates standalone, self-contained executive HTML and JSON migration assessment reports calculating total migration cost units, estimated human-days, schema volume rankings, and strategic remediation recommendations.
                         </div>
                     </div>
@@ -649,6 +641,190 @@ END;
     </main>
 
     <script>
+        // --- Internationalization (i18n) Engine backed by zettais.db2db.locale cookie ---
+        const COOKIE_LOCALE_NAME = 'zettais.db2db.locale';
+
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+            return match ? decodeURIComponent(match[3]) : null;
+        }
+
+        function setLocalCookie(name, value) {
+            document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+
+        let currentLang = getCookie(COOKIE_LOCALE_NAME) || localStorage.getItem('db2db-lang') || 'en';
+        let i18nDict = {};
+
+        async function loadI18nBundle(lang) {
+            try {
+                // Fetch from server-side i18n endpoint to synchronize session cookie and ResourceBundle
+                const res = await fetch(`/api/v1/i18n?lang=${lang}`);
+                if (res.ok) {
+                    i18nDict = await res.json();
+                } else {
+                    // Fallback to static JSON file
+                    const fallbackRes = await fetch(`/i18n/${lang}.json`);
+                    if (fallbackRes.ok) {
+                        i18nDict = await fallbackRes.json();
+                    }
+                }
+            } catch (err) {
+                console.warn('Error loading i18n bundle from server:', err);
+                try {
+                    const fallbackRes = await fetch(`/i18n/${lang}.json`);
+                    if (fallbackRes.ok) i18nDict = await fallbackRes.json();
+                } catch (e) {
+                    console.error('Fatal: Failed to load fallback i18n bundle:', e);
+                }
+            }
+        }
+
+        function t(key, fallback) {
+            return i18nDict[key] || fallback || key;
+        }
+
+        async function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('db2db-lang', lang);
+            setLocalCookie(COOKIE_LOCALE_NAME, lang);
+
+            // Notify server of locale change to set Set-Cookie: zettais.db2db.locale
+            try {
+                await fetch(`/api/v1/i18n/locale?lang=${lang}`, { method: 'POST' });
+            } catch (e) {
+                console.warn('Could not update server-side locale cookie:', e);
+            }
+
+            await loadI18nBundle(lang);
+
+            const toggleText = document.getElementById('langToggleText');
+            if (toggleText) {
+                toggleText.innerText = (lang === 'en') ? 'PT' : 'EN';
+            }
+
+            // Update Page title
+            document.title = t('brand.title', 'DB2DB by ZettaIS - Enterprise Database Migration Platform');
+
+            // Update Navigation tabs
+            const navWorkflow = document.getElementById('nav-tab-workflow');
+            if (navWorkflow) navWorkflow.innerText = t('nav.workflow', '🚀 End-to-End Migration');
+            const navTranspile = document.getElementById('nav-tab-transpile');
+            if (navTranspile) navTranspile.innerText = t('nav.transpile', 'PL/SQL Playground');
+            const navAssessment = document.getElementById('nav-tab-assessment');
+            if (navAssessment) navAssessment.innerText = t('nav.assessment', 'Live Schema Assessment');
+            const navShowcase = document.getElementById('nav-tab-showcase');
+            if (navShowcase) navShowcase.innerText = t('nav.showcase', 'Showcase Report (Demo)');
+            const navConfig = document.getElementById('nav-tab-config');
+            if (navConfig) navConfig.innerText = t('nav.config', 'Database Connections');
+            const navDdl = document.getElementById('nav-tab-ddl');
+            if (navDdl) navDdl.innerText = t('nav.ddl', 'DDL Exporter');
+            const navAbout = document.getElementById('nav-tab-about');
+            if (navAbout) navAbout.innerText = t('nav.about', 'ℹ️ About DB2DB');
+
+            // Update Workflow card controls
+            const wfTitle = document.getElementById('wfTitleText');
+            if (wfTitle) wfTitle.innerText = t('wf.title', '🚀 End-to-End Database Migration Workflow');
+            const wfSubtitle = document.getElementById('wfSubtitleText');
+            if (wfSubtitle) wfSubtitle.innerText = t('wf.subtitle', 'Execute full end-to-end multi-step migration with automated data streaming, constraint orchestration, sequence syncing, and validation.');
+            const wfModeLabel = document.getElementById('wfModeLabel');
+            if (wfModeLabel) wfModeLabel.innerText = t('wf.mode.label', 'Execution Mode');
+            const wfModeAuto = document.getElementById('wfModeAuto');
+            if (wfModeAuto) wfModeAuto.innerText = t('wf.mode.auto', '⚡ Automatic (Unattended - Run all selected steps consecutively)');
+            const wfModeInteractive = document.getElementById('wfModeInteractive');
+            if (wfModeInteractive) wfModeInteractive.innerText = t('wf.mode.interactive', '🎯 Interactive (Step-by-Step - Pause for operator approval at each phase)');
+            const wfStopOnErrorLabel = document.getElementById('wfStopOnErrorLabel');
+            if (wfStopOnErrorLabel) wfStopOnErrorLabel.innerText = t('wf.stopOnError.label', 'Stop immediately on step error');
+            const wfWorkersLabel = document.getElementById('wfWorkersLabel');
+            if (wfWorkersLabel) wfWorkersLabel.innerText = t('wf.workers.label', 'Virtual Thread Workers');
+            const wfWorkers2 = document.getElementById('wfWorkers2');
+            if (wfWorkers2) wfWorkers2.innerText = t('wf.workers.2', '2 Workers');
+            const wfWorkers4 = document.getElementById('wfWorkers4');
+            if (wfWorkers4) wfWorkers4.innerText = t('wf.workers.4', '4 Workers (Default)');
+            const wfWorkers8 = document.getElementById('wfWorkers8');
+            if (wfWorkers8) wfWorkers8.innerText = t('wf.workers.8', '8 Workers');
+            const wfWorkers16 = document.getElementById('wfWorkers16');
+            if (wfWorkers16) wfWorkers16.innerText = t('wf.workers.16', '16 Workers');
+
+            const wfActiveRouteLabel = document.getElementById('wfActiveRouteLabel');
+            if (wfActiveRouteLabel) wfActiveRouteLabel.innerText = t('wf.activeRoute.label', 'Active Database Route');
+            const wfSourceLabel = document.getElementById('wfSourceLabel');
+            if (wfSourceLabel) wfSourceLabel.innerText = t('wf.source.label', 'Source:');
+            const wfTargetLabel = document.getElementById('wfTargetLabel');
+            if (wfTargetLabel) wfTargetLabel.innerText = t('wf.target.label', 'Target:');
+            const wfManageCredsHint = document.getElementById('wfManageCredsHint');
+            if (wfManageCredsHint) wfManageCredsHint.innerText = t('wf.manageCreds.hint', 'Manage credentials in Database Connections tab.');
+
+            const wfSelectAllLabel = document.getElementById('wfSelectAllLabel');
+            if (wfSelectAllLabel) wfSelectAllLabel.innerText = t('wf.selectAll', 'Select All Steps');
+            const btnPresetAll = document.getElementById('btnPresetAll');
+            if (btnPresetAll) btnPresetAll.innerText = '✓ ' + t('wf.preset.all', 'Select All');
+            const btnPresetNone = document.getElementById('btnPresetNone');
+            if (btnPresetNone) btnPresetNone.innerText = '⊘ ' + t('wf.preset.none', 'Deselect All');
+            const btnPresetSchema = document.getElementById('btnPresetSchema');
+            if (btnPresetSchema) btnPresetSchema.innerText = '📋 ' + t('wf.preset.schema', 'Schema Only');
+            const btnPresetData = document.getElementById('btnPresetData');
+            if (btnPresetData) btnPresetData.innerText = '⚡ ' + t('wf.preset.data', 'Data Only');
+
+            const btnStart = document.getElementById('btnStartWorkflow');
+            if (btnStart) btnStart.innerText = t('wf.start', '▶️ Start Migration Workflow');
+            const btnCancel = document.getElementById('btnCancelWorkflow');
+            if (btnCancel) btnCancel.innerText = t('wf.abort', '🛑 Abort Workflow');
+
+            // Update Assessment Tab
+            const assessTitle = document.getElementById('assessTitleText');
+            if (assessTitle) assessTitle.innerText = t('assess.title', 'Targeted Schema Assessment');
+            const assessDesc = document.getElementById('assessDescText');
+            if (assessDesc) assessDesc.innerText = t('assess.desc', 'Extract live metadata from the source database, evaluate structural complexity, count objects, and estimate migration effort in human-days.');
+            const assessSchemaLabel = document.getElementById('assessSchemaLabel');
+            if (assessSchemaLabel) assessSchemaLabel.innerText = t('assess.schema.label', 'Target Schema Name');
+            const btnRunAssessment = document.getElementById('btnRunAssessment');
+            if (btnRunAssessment) btnRunAssessment.innerText = t('assess.btn.run', 'Run Live Assessment');
+            const btnOpenAssessmentReport = document.getElementById('btnOpenAssessmentReport');
+            if (btnOpenAssessmentReport) btnOpenAssessmentReport.innerText = t('assess.btn.report', '🚀 Open Full Standalone HTML');
+
+            // Update DDL exporter buttons
+            const ddlTitle = document.getElementById('ddlTitleText');
+            if (ddlTitle) ddlTitle.innerText = t('ddl.title', 'Export PostgreSQL Schema DDL');
+            const btnGenerateDdl = document.getElementById('btnGenerateDdl');
+            if (btnGenerateDdl) btnGenerateDdl.innerText = t('ddl.btn.generate', 'Generate DDL');
+            const btnCopyDdl = document.getElementById('btnCopyDdl');
+            if (btnCopyDdl && !btnCopyDdl.innerText.includes('Copied') && !btnCopyDdl.innerText.includes('Copiado')) {
+                btnCopyDdl.innerText = t('ddl.btn.copy', '📋 Copy');
+            }
+            const btnDownloadDdl = document.getElementById('btnDownloadDdl');
+            if (btnDownloadDdl) btnDownloadDdl.innerText = t('ddl.btn.download', '📥 Download DDL (.sql)');
+
+            // Update About Tab
+            const aboutLead = document.getElementById('aboutLeadText');
+            if (aboutLead) aboutLead.innerText = t('about.lead', '');
+            const p1Title = document.getElementById('aboutP1Title');
+            if (p1Title) p1Title.innerText = t('about.p1.title', '');
+            const p1Desc = document.getElementById('aboutP1Desc');
+            if (p1Desc) p1Desc.innerText = t('about.p1.desc', '');
+            const p2Title = document.getElementById('aboutP2Title');
+            if (p2Title) p2Title.innerText = t('about.p2.title', '');
+            const p2Desc = document.getElementById('aboutP2Desc');
+            if (p2Desc) p2Desc.innerText = t('about.p2.desc', '');
+            const p3Title = document.getElementById('aboutP3Title');
+            if (p3Title) p3Title.innerText = t('about.p3.title', '');
+            const p3Desc = document.getElementById('aboutP3Desc');
+            if (p3Desc) p3Desc.innerText = t('about.p3.desc', '');
+            const p4Title = document.getElementById('aboutP4Title');
+            if (p4Title) p4Title.innerText = t('about.p4.title', '');
+            const p4Desc = document.getElementById('aboutP4Desc');
+            if (p4Desc) p4Desc.innerText = t('about.p4.desc', '');
+
+            // Re-render workflow steps and checkboxes with localized names & descriptions
+            renderStepCheckboxes();
+            initWorkflowSteps();
+        }
+
+        async function toggleLanguage() {
+            const newLang = (currentLang === 'en') ? 'pt' : 'en';
+            await setLanguage(newLang);
+        }
+
         // --- Theme Engine (Light Default, Dark Toggle with Persistence) ---
         function initTheme() {
             const saved = localStorage.getItem('db2db-theme') || 'light';
@@ -1014,20 +1190,28 @@ END;
         }
 
         // --- End-to-End Migration Workflow Engine JavaScript ---
-        const WORKFLOW_STEPS = [
-            { id: 'PRE_FLIGHT_CHECK', title: 'Pre-Flight Check', desc: 'Verifies network connectivity, credentials, and target database extensions' },
-            { id: 'SCHEMA_ASSESSMENT', title: 'Schema Assessment', desc: 'Inspects catalog, calculates complexity units, invalid objects, and keywords' },
-            { id: 'PRE_SCHEMA_SETUP', title: 'Target Schema Setup', desc: 'Initializes PostgreSQL schema and activates extensions' },
-            { id: 'DDL_EXPORT', title: 'DDL Generation', desc: 'Generates PostgreSQL-compatible scripts for tables, sequences, and views' },
-            { id: 'DDL_APPLY', title: 'DDL Schema Application', desc: 'Applies table schemas and sequences to target database' },
-            { id: 'PARALLEL_DATA_STREAMING', title: 'Parallel Data Streaming', desc: 'High-speed streaming via JDK 25 Virtual Threads' },
-            { id: 'POST_DATA_INDEXES', title: 'Index Creation', desc: 'Builds primary keys, unique, secondary, and GIN/GiST indexes post-load' },
-            { id: 'FOREIGN_KEYS', title: 'Foreign Key Constraints', desc: 'Applies deferred foreign key relationships' },
-            { id: 'PROCEDURAL_CODE', title: 'PL/SQL Transpilation', desc: 'Transpiles Oracle routines to PL/pgSQL' },
-            { id: 'SEQUENCE_SYNC', title: 'Sequence Synchronization', desc: 'Syncs sequence counters with table maximum IDs' },
-            { id: 'DATA_VALIDATION_AUDIT', title: 'Data Validation Audit', desc: 'Cross-database row count and structural reconciliation' },
-            { id: 'FINAL_AUDIT_REPORT', title: 'Final Audit Report', desc: 'Compiles JSON and executive HTML audit reports' }
+        const WORKFLOW_STEP_IDS = [
+            'PRE_FLIGHT_CHECK',
+            'SCHEMA_ASSESSMENT',
+            'PRE_SCHEMA_SETUP',
+            'DDL_EXPORT',
+            'DDL_APPLY',
+            'PARALLEL_DATA_STREAMING',
+            'POST_DATA_INDEXES',
+            'FOREIGN_KEYS',
+            'PROCEDURAL_CODE',
+            'SEQUENCE_SYNC',
+            'DATA_VALIDATION_AUDIT',
+            'FINAL_AUDIT_REPORT'
         ];
+
+        function getWorkflowSteps() {
+            return WORKFLOW_STEP_IDS.map(id => ({
+                id: id,
+                title: t(`step.${id}.name`, id),
+                desc: t(`step.${id}.description`, '')
+            }));
+        }
 
         let wfPollingInterval = null;
         let wfWebSocket = null;
@@ -1049,12 +1233,39 @@ END;
             if (elTgtUser) elTgtUser.innerText = tgtUser;
         }
 
+        function renderStepCheckboxes() {
+            const container = document.getElementById('wfStepCheckboxesContainer');
+            if (!container) return;
+
+            // Preserve current checked state
+            const previousState = {};
+            WORKFLOW_STEP_IDS.forEach(id => {
+                const existingCb = document.getElementById('step_' + id);
+                previousState[id] = existingCb ? existingCb.checked : true;
+            });
+
+            container.innerHTML = '';
+            const steps = getWorkflowSteps();
+            steps.forEach((step, idx) => {
+                const label = document.createElement('label');
+                label.className = 'step-cb-label';
+                const isChecked = previousState[step.id] ?? true;
+                label.innerHTML = `
+                    <input type="checkbox" class="wf-step-cb" id="step_${step.id}" ${isChecked ? 'checked' : ''} onchange="updateStepSelectionCount()">
+                    ${idx + 1}. ${step.title}
+                `;
+                container.appendChild(label);
+            });
+            updateStepSelectionCount();
+        }
+
         function initWorkflowSteps() {
             const container = document.getElementById('wfStepsContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            WORKFLOW_STEPS.forEach((step, idx) => {
+            const steps = getWorkflowSteps();
+            steps.forEach((step, idx) => {
                 const item = document.createElement('div');
                 item.id = 'wf-step-' + step.id;
                 item.className = 'step-item PENDING';
@@ -1116,8 +1327,8 @@ END;
             const schemaSteps = ['PRE_FLIGHT_CHECK', 'SCHEMA_ASSESSMENT', 'PRE_SCHEMA_SETUP', 'DDL_EXPORT', 'DDL_APPLY', 'POST_DATA_INDEXES', 'FOREIGN_KEYS', 'PROCEDURAL_CODE', 'FINAL_AUDIT_REPORT'];
             const dataSteps = ['PRE_FLIGHT_CHECK', 'PARALLEL_DATA_STREAMING', 'SEQUENCE_SYNC', 'DATA_VALIDATION_AUDIT', 'FINAL_AUDIT_REPORT'];
 
-            WORKFLOW_STEPS.forEach(step => {
-                const cb = document.getElementById('step_' + step.id);
+            WORKFLOW_STEP_IDS.forEach(stepId => {
+                const cb = document.getElementById('step_' + stepId);
                 if (!cb) return;
 
                 if (preset === 'ALL') {
@@ -1125,9 +1336,9 @@ END;
                 } else if (preset === 'NONE') {
                     cb.checked = false;
                 } else if (preset === 'SCHEMA_ONLY') {
-                    cb.checked = schemaSteps.includes(step.id);
+                    cb.checked = schemaSteps.includes(stepId);
                 } else if (preset === 'DATA_ONLY') {
-                    cb.checked = dataSteps.includes(step.id);
+                    cb.checked = dataSteps.includes(stepId);
                 }
             });
 
@@ -1192,10 +1403,10 @@ END;
 
             // Collect skipped steps (unchecked boxes = skipped)
             const skippedSteps = [];
-            WORKFLOW_STEPS.forEach(s => {
-                const cb = document.getElementById('step_' + s.id);
+            WORKFLOW_STEP_IDS.forEach(stepId => {
+                const cb = document.getElementById('step_' + stepId);
                 if (cb && !cb.checked) {
-                    skippedSteps.push(s.id);
+                    skippedSteps.push(stepId);
                 }
             });
 
@@ -1211,7 +1422,8 @@ END;
                 mode: mode,
                 skippedSteps: skippedSteps,
                 stopOnError: stopOnError,
-                parallelWorkers: workers
+                parallelWorkers: workers,
+                language: currentLang
             };
 
             clearWorkflowLogs();
@@ -1290,9 +1502,10 @@ END;
                 if (banner) {
                     if (status.isPaused && status.currentStep) {
                         banner.style.display = 'block';
-                        const stepObj = WORKFLOW_STEPS.find(s => s.id === status.currentStep);
-                        document.getElementById('wfPendingStepName').innerText = stepObj ? stepObj.title : status.currentStep;
-                        document.getElementById('wfPendingStepDesc').innerText = stepObj ? stepObj.desc : '';
+                        const stepTitle = t(`step.${status.currentStep}.name`, status.currentStep);
+                        const stepDesc = t(`step.${status.currentStep}.description`, '');
+                        document.getElementById('wfPendingStepName').innerText = stepTitle;
+                        document.getElementById('wfPendingStepDesc').innerText = stepDesc;
                     } else {
                         banner.style.display = 'none';
                     }
@@ -1370,9 +1583,9 @@ END;
             window.open('/api/v1/workflow/report/json', '_blank');
         }
 
-        // Initialize connection label and stepper on page load
+        // Initialize connection label, i18n language, and stepper on page load
         updateActiveConnLabel();
-        initWorkflowSteps();
+        setLanguage(currentLang);
         connectWorkflowWebSocket();
     </script>
 </body>

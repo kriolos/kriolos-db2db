@@ -3,6 +3,7 @@ package com.zettais.db2db.web.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import com.zettais.db2db.core.i18n.Language;
 import com.zettais.db2db.core.workflow.*;
 import com.zettais.db2db.web.dto.StartWorkflowRequest;
 import com.zettais.db2db.web.ws.MigrationWebSocket;
@@ -91,6 +92,8 @@ public class WorkflowService {
             }
         }
 
+        Language language = Language.fromString(req.language());
+
         WorkflowConfig config = WorkflowConfig.builder()
                 .sourceDsn(req.sourceDsn())
                 .sourceUser(req.sourceUser())
@@ -104,6 +107,7 @@ public class WorkflowService {
                 .skippedSteps(skipped)
                 .stopOnError(req.stopOnError() == null || req.stopOnError())
                 .parallelWorkers(req.parallelWorkers() != null ? req.parallelWorkers() : 4)
+                .language(language)
                 .build();
 
         orchestrator.startWorkflow(config);

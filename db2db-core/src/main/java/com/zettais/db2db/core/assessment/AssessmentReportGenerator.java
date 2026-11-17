@@ -57,18 +57,21 @@ public class AssessmentReportGenerator {
             background-color: var(--body-bg);
             color: var(--text);
             line-height: 1.6;
-            padding: 2.5rem 2rem;
+            padding: clamp(1rem, 3vw, 2.5rem);
+            font-size: 15px;
         }
-        .container { max-width: 1280px; margin: 0 auto; }
+        .container { max-width: 1400px; width: 100%; margin: 0 auto; }
         header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            gap: 1.25rem;
             border-bottom: 2px solid var(--border);
             padding-bottom: 1.5rem;
             margin-bottom: 2rem;
         }
-        .logo-box h1 { font-size: 1.85rem; color: var(--primary); font-weight: 800; letter-spacing: -0.5px; }
+        .logo-box h1 { font-size: clamp(1.4rem, 2.5vw, 1.85rem); color: var(--primary); font-weight: 800; letter-spacing: -0.5px; }
         .logo-box p { font-size: 0.95rem; color: #64748b; margin-top: 0.25rem; }
         .meta-box { text-align: right; font-size: 0.9rem; color: #64748b; }
         .meta-box strong { color: var(--text-heading); }
@@ -88,6 +91,8 @@ public class AssessmentReportGenerator {
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             position: relative;
             overflow: hidden;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
         .kpi-card::before {
             content: '';
@@ -102,19 +107,21 @@ public class AssessmentReportGenerator {
         .kpi-card.difficulty::before { background: var(--warning); }
         .kpi-card.code::before { background: #06b6d4; }
         .kpi-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
-        .kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-heading); margin-top: 0.35rem; }
+        .kpi-value { font-size: clamp(1.6rem, 2.5vw, 2.1rem); font-weight: 800; color: var(--text-heading); margin-top: 0.35rem; }
         .kpi-sub { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
 
         .card {
             background: var(--card-bg);
             border-radius: 10px;
-            padding: 1.75rem;
+            padding: clamp(1rem, 2.5vw, 1.75rem);
             border: 1px solid var(--border);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             margin-bottom: 2rem;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
         .card h2 {
-            font-size: 1.35rem;
+            font-size: clamp(1.15rem, 2vw, 1.35rem);
             color: var(--text-heading);
             margin-bottom: 1.25rem;
             display: flex;
@@ -136,8 +143,15 @@ public class AssessmentReportGenerator {
         .badge-HIGH { background: #fee2e2; color: #991b1b; }
         .badge-CRITICAL { background: #7f1d1d; color: #fee2e2; }
 
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.95rem; }
+        /* Responsive Tables */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        table { width: 100%; min-width: 580px; border-collapse: collapse; font-size: 0.95rem; }
         th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f8fafc; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
         tr:hover td { background: #f1f5f9; }
@@ -167,11 +181,13 @@ public class AssessmentReportGenerator {
             border-radius: 6px;
             margin-bottom: 1rem;
             background: #fbfcfe;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
         .rec-item.HIGH { border-left-color: var(--danger); }
         .rec-item.MEDIUM { border-left-color: var(--warning); }
         .rec-item.LOW { border-left-color: var(--success); }
-        .rec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .rec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
         .rec-title { font-weight: 700; color: var(--text-heading); font-size: 1rem; }
         .rec-desc { font-size: 0.9rem; color: #475569; }
 
@@ -189,6 +205,46 @@ public class AssessmentReportGenerator {
         .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
 
         footer { text-align: center; margin-top: 3rem; font-size: 0.85rem; color: #94a3b8; }
+
+        /* Responsive Breakpoints for Mobile & Tablet */
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; text-align: left; }
+            .meta-box { text-align: left; width: 100%; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            table { min-width: 500px; font-size: 0.85rem; }
+            th, td { padding: 0.65rem 0.75rem; }
+        }
+
+        /* High-Fidelity Print Mode (A4, ink-saving, clean page breaks) */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm 10mm;
+            }
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-size: 12px;
+                padding: 0;
+            }
+            .container { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
+            header { border-bottom: 2px solid #334155 !important; margin-bottom: 1rem !important; padding-bottom: 0.75rem !important; }
+            .card, .kpi-card, .rec-item {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+                margin-bottom: 1rem !important;
+                padding: 1rem !important;
+            }
+            .table-responsive { overflow: visible !important; }
+            table { min-width: 100% !important; font-size: 11px !important; }
+            th, td { padding: 6px 8px !important; border-bottom: 1px solid #cbd5e1 !important; }
+            th { background: #f1f5f9 !important; color: #0f172a !important; }
+            .badge { border: 1px solid #94a3b8 !important; }
+            footer { margin-top: 1.5rem !important; font-size: 10px !important; color: #64748b !important; }
+        }
     </style>
 </head>
 <body>
@@ -295,6 +351,7 @@ public class AssessmentReportGenerator {
         sb.append("""
     <div class="card">
         <h2>Catalog Object Inventory & Migration Units</h2>
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -337,6 +394,7 @@ public class AssessmentReportGenerator {
         sb.append("""
             </tbody>
         </table>
+        </div>
     </div>
 """);
 
@@ -345,9 +403,10 @@ public class AssessmentReportGenerator {
             sb.append("""
     <div class="card">
         <h2>Top Largest Tables by Volume & Footprint</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
             <div>
                 <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: #475569;">By Row Count (Parallel Copy Candidates)</h3>
+                <div class="table-responsive">
                 <table>
                     <thead>
                         <tr><th>Table</th><th>Rows</th><th>Columns</th><th>Indexes</th></tr>
@@ -363,9 +422,11 @@ public class AssessmentReportGenerator {
             sb.append("""
                     </tbody>
                 </table>
+                </div>
             </div>
             <div>
                 <h3 style="font-size: 1.05rem; margin-bottom: 0.75rem; color: #475569;">By Disk Footprint</h3>
+                <div class="table-responsive">
                 <table>
                     <thead>
                         <tr><th>Table</th><th>Allocated Size</th><th>Rows</th></tr>
@@ -380,6 +441,7 @@ public class AssessmentReportGenerator {
             sb.append("""
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

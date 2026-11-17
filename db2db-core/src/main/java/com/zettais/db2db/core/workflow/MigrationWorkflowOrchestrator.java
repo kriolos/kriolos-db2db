@@ -596,7 +596,8 @@ public class MigrationWorkflowOrchestrator {
                 duration,
                 success,
                 List.copyOf(stepRecords),
-                summary
+                summary,
+                cfg != null ? cfg.language() : com.zettais.db2db.core.i18n.Language.EN
         );
     }
 
