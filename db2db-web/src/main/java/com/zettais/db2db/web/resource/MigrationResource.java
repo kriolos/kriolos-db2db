@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Response;
 import com.zettais.db2db.core.assessment.AssessmentEngine;
 import com.zettais.db2db.core.assessment.AssessmentReport;
 import com.zettais.db2db.core.config.Db2DbConfig;
+import com.zettais.db2db.core.i18n.Language;
 import com.zettais.db2db.core.ddl.PostgreSqlDdlGenerator;
 import com.zettais.db2db.core.extractor.JdbcMetadataExtractor;
 import com.zettais.db2db.core.extractor.MetadataExtractor;
@@ -97,10 +98,14 @@ public class MigrationResource {
     @GET
     @Path("/assessment/sample/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response getSampleAssessmentHtml() {
+    public Response getSampleAssessmentHtml(
+            @CookieParam(I18nResource.COOKIE_NAME) String cookieLang,
+            @QueryParam("lang") String queryLang
+    ) {
+        var lang = Language.fromString(queryLang != null && !queryLang.isBlank() ? queryLang : cookieLang);
         var report = assessmentEngine.createSampleReport();
         var generator = new com.zettais.db2db.core.assessment.AssessmentReportGenerator();
-        return Response.ok(generator.toHtml(report)).build();
+        return Response.ok(generator.toHtml(report, lang)).build();
     }
 
     @GET
@@ -110,8 +115,11 @@ public class MigrationResource {
             @QueryParam("dsn") String dsn,
             @QueryParam("user") String user,
             @QueryParam("password") String password,
-            @QueryParam("schema") String schema
+            @QueryParam("schema") String schema,
+            @CookieParam(I18nResource.COOKIE_NAME) String cookieLang,
+            @QueryParam("lang") String queryLang
     ) {
+        var lang = Language.fromString(queryLang != null && !queryLang.isBlank() ? queryLang : cookieLang);
         String effectiveDsn = dsn != null && !dsn.isBlank() ? dsn : "jdbc:oracle:thin:@localhost:1521/XEPDB1";
         String effectiveUser = user != null && !user.isBlank() ? user : "OSADMIN";
         String effectivePassword = password != null ? password : "";
@@ -128,7 +136,7 @@ public class MigrationResource {
             var catalog = extractor.extractCatalog(conn, config.getSourceSchema());
             var report = assessmentEngine.assess(catalog);
             var generator = new com.zettais.db2db.core.assessment.AssessmentReportGenerator();
-            return Response.ok(generator.toHtml(report)).build();
+            return Response.ok(generator.toHtml(report, lang)).build();
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : e.toString();
             return Response.status(Response.Status.BAD_REQUEST)
@@ -158,20 +166,28 @@ public class MigrationResource {
     @POST
     @Path("/assessment/live/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response postLiveAssessmentHtml(AssessmentRequest request) {
+    public Response postLiveAssessmentHtml(
+            AssessmentRequest request,
+            @CookieParam(I18nResource.COOKIE_NAME) String cookieLang,
+            @QueryParam("lang") String queryLang
+    ) {
         if (request == null || request.sourceDsn() == null || request.sourceDsn().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("<h3>Error: Source JDBC DSN is required.</h3>")
                     .build();
         }
-        return getLiveAssessmentHtml(request.sourceDsn(), request.sourceUser(), request.sourcePassword(), request.schema());
+        return getLiveAssessmentHtml(request.sourceDsn(), request.sourceUser(), request.sourcePassword(), request.schema(), cookieLang, queryLang);
     }
 
     @POST
     @Path("/assessment/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response runAssessmentHtml(AssessmentRequest request) {
-        return postLiveAssessmentHtml(request);
+    public Response runAssessmentHtml(
+            AssessmentRequest request,
+            @CookieParam(I18nResource.COOKIE_NAME) String cookieLang,
+            @QueryParam("lang") String queryLang
+    ) {
+        return postLiveAssessmentHtml(request, cookieLang, queryLang);
     }
 
     @POST

@@ -3,6 +3,7 @@ package com.zettais.db2db.web.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import com.zettais.db2db.core.i18n.Language;
 import com.zettais.db2db.core.workflow.*;
 import com.zettais.db2db.web.dto.StartWorkflowRequest;
 import com.zettais.db2db.web.ws.MigrationWebSocket;
@@ -122,9 +123,13 @@ public class WorkflowService {
     }
 
     public String getHtmlReport() {
+        return getHtmlReport(Language.EN);
+    }
+
+    public String getHtmlReport(Language lang) {
         var status = orchestrator.getStatus();
         if (status.finalReport() != null) {
-            return reportGenerator.toHtml(status.finalReport());
+            return reportGenerator.toHtml(status.finalReport(), lang);
         }
         return "<html><body><p>Workflow has not produced a final report yet.</p></body></html>";
     }

@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import com.zettais.db2db.core.i18n.Language;
 import com.zettais.db2db.core.workflow.MigrationWorkflowOrchestrator;
 import com.zettais.db2db.web.dto.StartWorkflowRequest;
 import com.zettais.db2db.web.service.WorkflowService;
@@ -75,8 +76,10 @@ public class WorkflowResource {
     @GET
     @Path("/report/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response getHtmlReport() {
-        String html = workflowService.getHtmlReport();
+    public Response getHtmlReport(@CookieParam(I18nResource.COOKIE_NAME) String cookieLang,
+                                 @QueryParam("lang") String queryLang) {
+        var lang = Language.fromString(queryLang != null && !queryLang.isBlank() ? queryLang : cookieLang);
+        String html = workflowService.getHtmlReport(lang);
         return Response.ok(html).build();
     }
 
