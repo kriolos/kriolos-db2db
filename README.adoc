@@ -1,31 +1,37 @@
-= db2db: Enterprise Database-to-Database Migration Engine (Java Port of ora2pg)
+= DB2DB by ZettaIS: Enterprise Database Migration Platform
 :toc: left
 :toclevels: 3
 :icons: font
 :source-highlighter: highlight.js
 
-image:https://img.shields.io/badge/JDK-25-orange.svg[JDK 25]
-image:https://img.shields.io/badge/Quarkus-4.0.0.Beta2-blue.svg[Quarkus 4]
+image:https://github.com/poolborges/migration_db2db/actions/workflows/ci.yml/badge.svg[CI Build & Test, link=https://github.com/poolborges/migration_db2db/actions/workflows/ci.yml]
+image:https://github.com/poolborges/migration_db2db/actions/workflows/release.yml/badge.svg[Publish Release, link=https://github.com/poolborges/migration_db2db/actions/workflows/release.yml]
+image:https://img.shields.io/badge/JDK-25-orange.svg[JDK 25, link=https://adoptium.net/]
+image:https://img.shields.io/badge/Quarkus-4.0.0.Beta2-blue.svg[Quarkus 4, link=https://quarkus.io/]
 image:https://img.shields.io/badge/GraalVM-CE%2025%20Native-brightgreen.svg[GraalVM CE 25]
-image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[License]
+image:https://img.shields.io/badge/Maven%20Wrapper-3.10.0-C71A36.svg[Maven Wrapper 3.10.0]
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[License, link=LICENSE]
 
-*db2db* is an industrial-grade, multi-dialect database migration framework re-engineering the capabilities of Perl-based *ora2pg* into modern, high-performance Java (targeting **JDK 25**, **Quarkus 4**, and **GraalVM Native Image**).
+*DB2DB by ZettaIS* is an industrial-grade, high-performance database migration platform engineered from the ground up in modern Java (targeting **OpenJDK 25**, **Quarkus 4**, and **GraalVM Native Image**). It modernizes and supersedes legacy Perl-based migration utilities (such as ora2pg) with zero external script runtime dependencies, lock-free parallel streaming, and state-machine orchestration.
 
-db2db supports extracting schema metadata, migrating schema DDL, converting procedural code (PL/SQL to PL/pgSQL), transforming spatial geometries (Oracle SDO_GEOMETRY to PostGIS), generating migration assessment reports, and streaming table data in parallel via PostgreSQL `COPY FROM STDIN` using JDK 25 Virtual Threads.
+DB2DB automates metadata introspection, schema DDL generation, semantic procedural code transpilation (PL/SQL to PL/pgSQL), spatial geometry conversion (Oracle SDO_GEOMETRY to PostGIS), standalone executive cost assessment, parallel binary data streaming via PostgreSQL `COPY FROM STDIN` with JDK 25 Virtual Threads, and cross-database data validation audits.
 
 ---
 
 == 1. Architecture Overview
 
-db2db is architected as a Maven multi-module system:
+DB2DB is architected as a modular Maven reactor project:
 
 [source]
 ----
 db2db/
 ├── pom.xml                 # Reactor POM (JDK 25, Quarkus 4 BOM, dependency management)
-├── db2db-core/             # Engine, Extractors, DDL, Transpiler, Spatial, Assessment, Streaming
+├── mvnw / mvnw.cmd         # Maven Wrapper 3.10.0
+├── .mvn/wrapper/           # Wrapper configuration
+├── .github/workflows/      # GitHub Actions CI & Release automation
+├── db2db-core/             # Migration engine, SPI extractors, DDL, i18n, transpiler, spatial, orchestrator
 ├── db2db-cli/              # Picocli-based standalone shaded CLI runner
-└── db2db-web/              # Quarkus 4 REST, WebSocket, OpenAPI, Single-Page Web Dashboard & GraalVM Native Image
+└── db2db-web/              # Quarkus 4 REST, WebSocket, OpenAPI, responsive single-page web dashboard
 ----
 
 === Module Breakdown
@@ -34,15 +40,15 @@ db2db/
 |===
 | Module | Responsibility | Key Technologies
 | `db2db-core`
-| Database abstraction, metadata extraction, DDL generator, procedural transpiler, spatial conversion, data streaming, cost assessment.
+| Database abstraction, metadata extraction, DDL generator, procedural transpiler, spatial conversion, 12-step lifecycle orchestrator, ResourceBundle i18n, and audit generators.
 | JDK 25 (Virtual Threads, Records, Pattern Matching, Sealed Types), PostgreSQL JDBC, Jackson.
 
 | `db2db-cli`
-| Standalone CLI tool providing subcommands for schema export, analysis, data streaming, and PL/SQL transpilation.
+| Standalone CLI tool providing subcommands for schema export, assessment analysis, data streaming, and PL/SQL transpilation.
 | Picocli 4.7.6, shaded Uber-JAR packaging.
 
 | `db2db-web`
-| Cloud-native interactive GUI and API service offering REST endpoints, real-time WebSocket progress streaming, Swagger UI, and single-page dashboard.
+| Cloud-native interactive GUI and API service offering REST endpoints, real-time WebSocket progress streaming, Swagger UI, and responsive dashboard.
 | Quarkus 4.0.0.Beta2, RESTEasy Reactive, WebSockets Next, GraalVM Native Image.
 |===
 
@@ -50,64 +56,113 @@ db2db/
 
 == 2. Supported Database Dialects & Sources
 
-db2db implements the sealed `DialectDataTypeMapper` strategy and `MetadataExtractor` SPI across multiple DBMS sources:
+DB2DB implements the sealed `DialectDataTypeMapper` strategy and `MetadataExtractor` SPI across enterprise DBMS sources:
 
-* **Oracle Database** (11g, 12c, 19c, 21c, 23ai): System dictionary metadata (`ALL_TABLES`, `ALL_TAB_COLS`, `ALL_CONSTRAINTS`, `ALL_INDEXES`), partition schemas (RANGE, LIST, HASH), sequence parameters, and spatial `SDO_GEOMETRY`.
+* **Oracle Database** (11g, 12c, 19c, 21c, 23ai): Catalog metadata extraction (`ALL_TABLES`, `ALL_TAB_COLS`, `ALL_CONSTRAINTS`, `ALL_INDEXES`), partition schemas (RANGE, LIST, HASH), sequence parameters, and spatial `SDO_GEOMETRY`.
 * **MySQL** (5.7, 8.x): `information_schema` extraction, enum/set mappings, autoincrement sequence emulation.
 * **Microsoft SQL Server** (2016, 2019, 2022): `sys.tables`, `sys.columns`, identity columns, uniqueidentifiers, datetimeoffset.
 * **Generic ANSI / JDBC**: Universal fallback extractor querying `java.sql.DatabaseMetaData`.
 
 ---
 
-== 3. Modern Java 25 Language Features
+== 3. 12-Step Industrial Migration Lifecycle
 
-db2db strictly enforces modern Java idioms throughout all modules:
+DB2DB features an enterprise state machine orchestrator (`MigrationWorkflowOrchestrator`) executing an automated or operator-guided 12-step lifecycle:
 
-* **Java Records**: Immutable carrier DTOs (`Table`, `Column`, `Constraint`, `Index`, `PartitionInfo`, `SdoGeometry`, `TranspileRequest`, `AssessmentReport`).
-* **Pattern Matching for Switch & `instanceof`**: Type-safe extraction of metadata objects and AST dispatch without unchecked casts.
-* **Switch Expressions**: Exhaustive `switch (...) ->` constructs with zero fall-through risk.
-* **Text Blocks (`"""`)**: Clean, formatted SQL statements, DDL definitions, and HTML report templates.
-* **Sequenced Collections**: Direct usage of `getFirst()`, `getLast()`, and `reversed()` on ordered collections.
-* **Virtual Threads (`Thread.ofVirtual()`)**: Unbounded parallel table streaming and asynchronous assessment using `Executors.newVirtualThreadPerTaskExecutor()`.
+[cols="1,2,3", options="header"]
+|===
+| Step | Phase Name | Execution Responsibility
+| 1 | `PRE_FLIGHT_CHECK` | Validates network connectivity, credentials, engine versions, and destination extensions.
+| 2 | `SCHEMA_ASSESSMENT` | Inspects catalog metadata, calculates migration units, invalid objects, and keyword collisions.
+| 3 | `PRE_SCHEMA_SETUP` | Initializes destination schema and activates PostgreSQL extensions (`postgis`, `btree_gin`, `uuid-ossp`).
+| 4 | `DDL_EXPORT` | Generates PostgreSQL-compatible DDL for tables, sequences, views, and types.
+| 5 | `DDL_APPLY` | Applies structural DDL against the target PostgreSQL database.
+| 6 | `PARALLEL_DATA_STREAMING` | High-throughput binary data streaming via Virtual Threads and PostgreSQL `CopyManager`.
+| 7 | `POST_DATA_INDEXES` | Creates primary keys, unique, secondary, and PostGIS/GIN indexes after data is loaded.
+| 8 | `FOREIGN_KEYS` | Applies deferred foreign key relationships and referential integrity constraints.
+| 9 | `SEQUENCE_SYNC` | Synchronizes sequence counters with table primary key maximum values (`MAX(id)`).
+| 10 | `PROCEDURAL_CODE` | Transpiles PL/SQL stored procedures, functions, packages, and triggers to native PL/pgSQL.
+| 11 | `DATA_VALIDATION_AUDIT` | Cross-database row-count reconciliation and structural integrity verification.
+| 12 | `FINAL_AUDIT_REPORT` | Compiles comprehensive executive audit reports in JSON and responsive standalone HTML.
+|===
 
 ---
 
-== 4. Building the Project
+== 4. Multi-Language Internationalization (i18n)
+
+DB2DB provides native multi-language support:
+
+* **Java ResourceBundle Files**: Clean `.properties` resource bundles located in `db2db-core/src/main/resources/i18n/`:
+  - `messages.properties` (Default English fallback)
+  - `messages_en.properties` (English)
+  - `messages_pt.properties` (Português)
+* **Clean Domain Constants**: `MigrationStepId` enum constants are strictly decoupled from translation strings, resolving names and descriptions dynamically via `I18nMessages`.
+* **Session Cookie Synchronization**: Language changes invoke `POST /api/v1/i18n/locale?lang={en|pt}`, synchronizing the HTTP cookie **`zettais.db2db.locale`** across client sessions, WebSocket events, and executive report generation.
+
+---
+
+== 5. Responsive Standalone Reports & Print/PDF Mode
+
+Both assessment and workflow audit reports are self-contained, standalone HTML documents:
+
+* **Multi-Device Responsive Layout**: Fluid design supporting mobile screens (320px–768px), tablets, and widescreen displays (1440px+) with horizontal scrolling tables (`.table-responsive`) and auto-fitting KPI grids.
+* **Optimized Print & PDF Output (`@media print`)**:
+  - A4 portrait pagination (`@page { size: A4 portrait; margin: 12mm 10mm; }`).
+  - Ink-saving white backgrounds (`#ffffff`) with high-contrast text (`#0f172a`).
+  - Strict pagination protection (`page-break-inside: avoid; break-inside: avoid;`) preventing broken cards or truncated table rows.
+  - Interactive screen-only button (`🖨️ Print / Save as PDF`) automatically suppressed during printing.
+
+---
+
+== 6. Modern Java 25 Language Features
+
+DB2DB strictly enforces modern Java language and JVM idioms:
+
+* **Java Records**: Immutable carriers and DTOs (`Table`, `Column`, `Constraint`, `Index`, `PartitionInfo`, `SdoGeometry`, `StepExecutionRecord`, `WorkflowExecutionReport`).
+* **Pattern Matching**: Type-safe AST dispatch and exception handling without manual casting.
+* **Switch Expressions**: Exhaustive `switch (...) ->` expressions with zero fall-through risk.
+* **Text Blocks (`"""`)**: Formatted SQL statements, DDL scripts, and report templates.
+* **Virtual Threads (`Thread.ofVirtual()`)**: Unbounded parallel table streaming and asynchronous assessment using `Executors.newVirtualThreadPerTaskExecutor()`.
+* **Sequenced Collections**: Direct usage of `getFirst()`, `getLast()`, and `reversed()` on ordered collections.
+
+---
+
+== 7. Building the Project
 
 === Prerequisites
 
-* **JDK 25** (e.g. Eclipse Temurin or GraalVM CE 25):
+* **OpenJDK 25** (e.g. Eclipse Temurin 25 or GraalVM CE 25):
 [source,bash]
 ----
 sdk use java 25.0.4-tem
 ----
-* **Apache Maven 3.9+**:
-[source,bash]
-----
-mvn -version
-----
 
-=== Standard JVM Build
+=== Standard JVM Build with Maven Wrapper
+
+The repository includes the Apache Maven Wrapper 3.10.0:
 
 [source,bash]
 ----
-mvn clean package
+# Linux / macOS
+./mvnw clean package
+
+# Windows
+mvnw.cmd clean package
 ----
 
 Artifacts produced:
 
 * `db2db-core/target/db2db-core-1.0.0-SNAPSHOT.jar`
-* `db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar` (Executable shaded JAR)
+* `db2db-cli/target/quarkus-app/` & `db2db-cli-1.0.0-SNAPSHOT.jar`
 * `db2db-web/target/quarkus-app/` (Quarkus fast-jar runner)
 
 === GraalVM Native Image Compilation
 
-Compile `db2db-web` into an ultra-fast, zero-JVM native executable:
+Compile `db2db-web` into a zero-JVM native executable:
 
 [source,bash]
 ----
-sdk use java 25.0.2-graalce
-mvn clean package -Pnative -DskipTests
+./mvnw clean package -Pnative -DskipTests
 ----
 
 Result:
@@ -117,78 +172,79 @@ Result:
 
 ---
 
-== 5. CLI Usage (`db2db-cli`)
+== 8. CLI Usage (`db2db-cli`)
 
-The CLI offers commands mirroring `ora2pg` functionality:
+The standalone CLI offers powerful migration subcommands:
 
 [source,bash]
 ----
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar --help
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar --help
 ----
 
 === Subcommands
 
-==== 1. Test Connection
+==== 1. Test Database Connectivity
 [source,bash]
 ----
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar test-connection \
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar test-connection \
   --url "jdbc:oracle:thin:@//localhost:1521/ORCLPDB1" \
   --user "HR" \
   --password "secret"
 ----
 
-==== 2. Analyze & Estimate Migration Cost
+==== 2. Analyze & Estimate Migration Effort
 [source,bash]
 ----
 # Run live schema assessment against connected database:
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar analyze \
-  --config ora2pg.conf \
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar analyze \
+  --config db2db.conf \
   --output ./assessment-report.html \
   --format HTML
 
-# Or generate a complete Showcase/Fake Assessment Report (all features, no database required):
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar --output ./reports analyze \
+# Or generate a complete Showcase Assessment Report (no database required):
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar analyze \
   --sample \
-  --format html
+  --output ./reports/assessment-report.html \
+  --format HTML
 ----
 
 ==== 3. Export Schema DDL
 [source,bash]
 ----
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar export-schema \
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar export-schema \
   --dialect ORACLE \
   --schema HR \
   --output ./hr-schema.sql
 ----
 
-==== 4. Stream Data in Parallel
+==== 4. Stream Data in Parallel (Virtual Threads)
 [source,bash]
 ----
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar export-data \
-  --config ora2pg.conf \
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar export-data \
+  --config db2db.conf \
   --target-url "jdbc:postgresql://localhost:5432/targetdb" \
   --target-user "postgres" \
   --target-password "secret" \
   --concurrency 16
 ----
 
-==== 5. Transpile PL/SQL Code
+==== 5. Transpile PL/SQL Code to PL/pgSQL
 [source,bash]
 ----
-java -jar db2db-cli/target/db2db-cli-1.0.0-SNAPSHOT.jar convert-sql \
+java -jar db2db-cli/target/quarkus-app/quarkus-run.jar convert-sql \
   --input ./oracle_package.sql \
   --output ./pg_package.sql
 ----
 
 ---
 
-== 6. Web Dashboard & REST API (`db2db-web`)
+== 9. Web Dashboard & REST API (`db2db-web`)
 
-Run the application either via JVM fast-jar or native runner:
+Run the application either via JVM fast-jar or native binary:
 
 [source,bash]
 ----
-# Via JVM
+# Via JVM Fast-Jar
 java -jar db2db-web/target/quarkus-app/quarkus-run.jar
 
 # Or via Native Binary (0.035s startup)
@@ -197,19 +253,29 @@ java -jar db2db-web/target/quarkus-app/quarkus-run.jar
 
 Open your browser at `http://localhost:8080/`:
 
-* **Web UI Dashboard**: `http://localhost:8080/index.html` (interactive PL/SQL transpiler, connection tester, assessment triggers).
+* **Web UI Dashboard**: `http://localhost:8080/index.html` (interactive workflow manager, connection tester, PL/SQL transpiler).
 * **Swagger UI / OpenAPI**: `http://localhost:8080/q/swagger-ui/`
 * **Health Check**: `http://localhost:8080/api/v1/health`
+* **i18n Locale Endpoint**: `GET /api/v1/i18n?lang={en|pt}`
 * **Transpiler API**: `POST /api/v1/transpile`
 * **Assessment API**: `POST /api/v1/assessment`
-* **Showcase Report JSON**: `GET /api/v1/assessment/sample`
-* **Showcase Report HTML**: `GET /api/v1/assessment/sample/html`
+* **Showcase Assessment HTML**: `GET /api/v1/assessment/sample/html`
+* **Executive Workflow Audit HTML**: `GET /api/v1/workflow/report/html`
 * **WebSocket Progress**: `ws://localhost:8080/ws/migration`
 
 ---
 
-== 7. Quality & Verification
+== 10. Automated CI/CD Workflows
 
-* Reactor test suite: **33 automated unit and integration tests** passing with 0 failures, 0 errors.
+The repository is equipped with GitHub Actions automation:
+
+* **`.github/workflows/ci.yml`**: Triggers on pull requests and commits to `main` and `develop`, testing the full reactor with OpenJDK 25 and `./mvnw clean verify`.
+* **`.github/workflows/release.yml`**: Triggers on version tags (`v*`), compiling production packages, generating SHA-256 checksums, and publishing release assets (CLI bundles, Web bundles, core JARs) to GitHub Releases.
+
+---
+
+== 11. Quality & Verification
+
+* Reactor test suite: **38 automated unit and integration tests** passing with 0 failures, 0 errors.
 * Memory-efficient streaming using PostgreSQL `CopyManager` / `COPY FROM STDIN` with Virtual Threads.
 * PostGIS spatial converter verifying full polygon box expansions and EWKT geometry outputs.
