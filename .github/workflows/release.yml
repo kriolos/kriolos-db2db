@@ -1,0 +1,111 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release (e.g., v1.0.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup OpenJDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+
+      - name: Make Maven Wrapper Executable
+        run: chmod +x mvnw
+
+      - name: Extract Release Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag_name }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Release Tag: ${TAG}, Version: ${VERSION}"
+
+      - name: Build and Package All Modules
+        run: |
+          ./mvnw clean package -DskipTests --batch-mode --no-transfer-progress
+
+      - name: Prepare Release Bundles
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DIST_DIR="dist"
+          mkdir -p "${DIST_DIR}"
+
+          # 1. Package DB2DB CLI Distribution
+          CLI_DIR="db2db-cli-${VERSION}"
+          mkdir -p "${CLI_DIR}/bin" "${CLI_DIR}/conf"
+          cp -r db2db-cli/target/quarkus-app/* "${CLI_DIR}/"
+          cp db2db.conf "${CLI_DIR}/conf/"
+          cat << 'EOF' > "${CLI_DIR}/bin/db2db"
+          #!/usr/bin/env bash
+          DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+          exec java -jar "${DIR}/quarkus-run.jar" "$@"
+          EOF
+          chmod +x "${CLI_DIR}/bin/db2db"
+
+          tar -czf "${DIST_DIR}/db2db-cli-${VERSION}-linux-x64.tar.gz" "${CLI_DIR}"
+          zip -rq "${DIST_DIR}/db2db-cli-${VERSION}.zip" "${CLI_DIR}"
+          rm -rf "${CLI_DIR}"
+
+          # 2. Package DB2DB Web Dashboard Distribution
+          WEB_DIR="db2db-web-${VERSION}"
+          mkdir -p "${WEB_DIR}/bin" "${WEB_DIR}/conf"
+          cp -r db2db-web/target/quarkus-app/* "${WEB_DIR}/"
+          cp db2db.conf "${WEB_DIR}/conf/"
+          cat << 'EOF' > "${WEB_DIR}/bin/db2db-web"
+          #!/usr/bin/env bash
+          DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+          exec java -jar "${DIR}/quarkus-run.jar" "$@"
+          EOF
+          chmod +x "${WEB_DIR}/bin/db2db-web"
+
+          tar -czf "${DIST_DIR}/db2db-web-${VERSION}-linux-x64.tar.gz" "${WEB_DIR}"
+          zip -rq "${DIST_DIR}/db2db-web-${VERSION}.zip" "${WEB_DIR}"
+          rm -rf "${WEB_DIR}"
+
+          # 3. Copy DB2DB Core Library JAR
+          cp db2db-core/target/db2db-core-*.jar "${DIST_DIR}/db2db-core-${VERSION}.jar"
+
+          # 4. Generate SHA-256 Checksums
+          cd "${DIST_DIR}"
+          sha256sum * > "checksums-sha256.txt"
+          cd ..
+          ls -la "${DIST_DIR}"
+
+      - name: Generate Release Notes & Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: DB2DB by ZettaIS ${{ steps.version.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/*
