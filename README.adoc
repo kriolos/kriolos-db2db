@@ -265,7 +265,48 @@ Open your browser at `http://localhost:8080/`:
 
 ---
 
-== 10. Automated CI/CD Workflows
+== 10. Running with Docker & Docker Compose
+
+DB2DB provides turnkey containerization for container runtimes and Kubernetes:
+
+=== One-Click Migration Playground (Docker Compose)
+
+Start both the **DB2DB Web Dashboard** and a pre-configured **PostgreSQL 17 (PostGIS)** target database:
+
+[source,bash]
+----
+docker compose up -d
+----
+
+Once started, access:
+* **Web Dashboard**: `http://localhost:8080/`
+* **PostgreSQL Target**: `localhost:5432` (User: `postgres`, Password: `secretpassword`, Database: `targetdb`)
+
+To stop the containers:
+[source,bash]
+----
+docker compose down
+----
+
+=== Building Docker Images Locally
+
+Build the production JVM image using Eclipse Temurin 25:
+
+[source,bash]
+----
+docker build -f Dockerfile.jvm -t zettais/db2db-web:latest .
+----
+
+Or build the ultra-compact GraalVM native image (after running `./mvnw clean package -Pnative -DskipTests`):
+
+[source,bash]
+----
+docker build -f Dockerfile.native -t zettais/db2db-web:native .
+----
+
+---
+
+== 11. Automated CI/CD Workflows
 
 The repository is equipped with GitHub Actions automation:
 
@@ -274,7 +315,7 @@ The repository is equipped with GitHub Actions automation:
 
 ---
 
-== 11. Quality & Verification
+== 12. Quality & Verification
 
 * Reactor test suite: **38 automated unit and integration tests** passing with 0 failures, 0 errors.
 * Memory-efficient streaming using PostgreSQL `CopyManager` / `COPY FROM STDIN` with Virtual Threads.
