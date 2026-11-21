@@ -272,7 +272,7 @@ DB2DB provides turnkey containerization for container runtimes and Kubernetes:
 
 === One-Click Migration Playground (Docker Compose)
 
-Start both the **DB2DB Web Dashboard** and a pre-configured **PostgreSQL 17 (PostGIS)** target database:
+Start the **DB2DB Web Dashboard** alongside pre-configured **PostgreSQL 17 (PostGIS)** and **MariaDB 11.4 LTS** target databases:
 
 [source,bash]
 ----
@@ -282,6 +282,7 @@ docker compose up -d
 Once started, access:
 * **Web Dashboard**: `http://localhost:8080/`
 * **PostgreSQL Target**: `localhost:5432` (User: `postgres`, Password: `secretpassword`, Database: `targetdb`)
+* **MariaDB Target**: `localhost:3306` (User: `mariadb`, Password: `secretpassword`, Database: `targetdb`, Charset: `utf8mb4`)
 
 To stop the containers:
 [source,bash]
