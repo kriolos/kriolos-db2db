@@ -51,4 +51,33 @@ class WorkflowResourceTest {
                 .statusCode(200)
                 .body("skipped", is(false));
     }
+
+    @Test
+    void testStartWorkflowWithMariaDbTarget() {
+        var req = new StartWorkflowRequest(
+                "jdbc:oracle:thin:@localhost:1521/XE",
+                "SYSTEM",
+                "secret",
+                "HR",
+                "jdbc:mariadb://localhost:3306/hr_target",
+                "mariadb",
+                "secret",
+                "hr_target",
+                "MARIADB",
+                "AUTOMATIC",
+                List.of("PRE_FLIGHT_CHECK", "SCHEMA_ASSESSMENT", "PRE_SCHEMA_SETUP", "DDL_EXPORT", "DDL_APPLY",
+                        "PARALLEL_DATA_STREAMING", "POST_DATA_INDEXES", "FOREIGN_KEYS", "PROCEDURAL_CODE",
+                        "SEQUENCE_SYNC", "DATA_VALIDATION_AUDIT", "FINAL_AUDIT_REPORT"),
+                false,
+                2
+        );
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(req)
+            .when().post("/api/v1/workflow/start")
+            .then()
+                .statusCode(200)
+                .body("status", is("STARTED"));
+    }
 }

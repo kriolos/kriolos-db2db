@@ -1,5 +1,6 @@
 package com.zettais.db2db.core.ddl;
 
+import com.zettais.db2db.core.config.Db2DbConfig;
 import com.zettais.db2db.core.model.*;
 
 /**
@@ -7,6 +8,17 @@ import com.zettais.db2db.core.model.*;
  * Uses sealed hierarchy for exhaustive pattern matching and type-safe extensibility.
  */
 public sealed interface TargetDdlGenerator permits PostgreSqlDdlGenerator, MariaDbDdlGenerator {
+
+    /**
+     * Factory method creating the appropriate TargetDdlGenerator based on Db2DbConfig's targetDialect.
+     */
+    static TargetDdlGenerator of(Db2DbConfig config) {
+        return switch (config.getTargetDialect()) {
+            case MARIADB -> new MariaDbDdlGenerator(config);
+            case POSTGRESQL -> new PostgreSqlDdlGenerator(config);
+            default -> throw new UnsupportedOperationException("Unsupported target dialect: " + config.getTargetDialect());
+        };
+    }
 
     /**
      * Target database dialect for this generator.

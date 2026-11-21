@@ -1,5 +1,7 @@
 package com.zettais.db2db.core.config;
 
+import com.zettais.db2db.core.model.DatabaseDialect;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -46,6 +48,7 @@ public class Db2DbConfig {
     private String targetUser = "postgres";
     private String targetPassword = "";
     private String targetSchema = "public";
+    private DatabaseDialect targetDialect = DatabaseDialect.POSTGRESQL;
 
     private ExportType exportType = ExportType.SHOW_REPORT;
     private String outputPath = "./output";
@@ -120,6 +123,13 @@ public class Db2DbConfig {
                     case "PG_SCHEMA":
                     case "TARGET_SCHEMA":
                         config.setTargetSchema(value);
+                        break;
+                    case "TARGET_DIALECT":
+                    case "TARGET":
+                        try {
+                            config.setTargetDialect(DatabaseDialect.valueOf(value.toUpperCase(Locale.ROOT)));
+                        } catch (IllegalArgumentException ignored) {
+                        }
                         break;
                     case "TYPE":
                         config.setExportType(ExportType.valueOf(value.toUpperCase(Locale.ROOT)));
@@ -207,6 +217,16 @@ public class Db2DbConfig {
     public void setTargetPassword(String targetPassword) { this.targetPassword = targetPassword; }
     public String getTargetSchema() { return targetSchema; }
     public void setTargetSchema(String targetSchema) { this.targetSchema = targetSchema; }
+    public DatabaseDialect getTargetDialect() {
+        if (targetDialect == null) {
+            if (targetDsn != null && (targetDsn.toLowerCase(Locale.ROOT).contains("mariadb") || targetDsn.toLowerCase(Locale.ROOT).contains("mysql"))) {
+                return DatabaseDialect.MARIADB;
+            }
+            return DatabaseDialect.POSTGRESQL;
+        }
+        return targetDialect;
+    }
+    public void setTargetDialect(DatabaseDialect targetDialect) { this.targetDialect = targetDialect; }
 
     public ExportType getExportType() { return exportType; }
     public void setExportType(ExportType exportType) { this.exportType = exportType; }

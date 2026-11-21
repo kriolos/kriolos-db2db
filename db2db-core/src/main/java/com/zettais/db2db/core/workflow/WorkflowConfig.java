@@ -1,8 +1,11 @@
 package com.zettais.db2db.core.workflow;
 
+import com.zettais.db2db.core.model.DatabaseDialect;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -17,6 +20,7 @@ public record WorkflowConfig(
         String targetUser,
         String targetPassword,
         String targetSchema,
+        DatabaseDialect targetDialect,
         WorkflowMode mode,
         Set<MigrationStepId> skippedSteps,
         boolean stopOnError,
@@ -33,10 +37,31 @@ public record WorkflowConfig(
         targetUser = targetUser != null ? targetUser : "postgres";
         targetPassword = targetPassword != null ? targetPassword : "";
         targetSchema = targetSchema != null && !targetSchema.isBlank() ? targetSchema : "public";
+        targetDialect = targetDialect != null ? targetDialect : (targetDsn != null && (targetDsn.toLowerCase(Locale.ROOT).contains("mariadb") || targetDsn.toLowerCase(Locale.ROOT).contains("mysql")) ? DatabaseDialect.MARIADB : DatabaseDialect.POSTGRESQL);
         mode = mode != null ? mode : WorkflowMode.AUTOMATIC;
         skippedSteps = skippedSteps != null ? Set.copyOf(skippedSteps) : Collections.emptySet();
         if (parallelWorkers <= 0) parallelWorkers = 4;
         outputDir = outputDir != null && !outputDir.isBlank() ? outputDir : "./reports";
+    }
+
+    public WorkflowConfig(
+            String sourceDsn,
+            String sourceUser,
+            String sourcePassword,
+            String sourceSchema,
+            String targetDsn,
+            String targetUser,
+            String targetPassword,
+            String targetSchema,
+            WorkflowMode mode,
+            Set<MigrationStepId> skippedSteps,
+            boolean stopOnError,
+            int parallelWorkers,
+            String outputDir
+    ) {
+        this(sourceDsn, sourceUser, sourcePassword, sourceSchema,
+             targetDsn, targetUser, targetPassword, targetSchema,
+             null, mode, skippedSteps, stopOnError, parallelWorkers, outputDir);
     }
 
     public static Builder builder() {
@@ -56,6 +81,7 @@ public record WorkflowConfig(
         private String targetUser = "postgres";
         private String targetPassword = "";
         private String targetSchema = "public";
+        private DatabaseDialect targetDialect;
         private WorkflowMode mode = WorkflowMode.AUTOMATIC;
         private final Set<MigrationStepId> skippedSteps = new HashSet<>();
         private boolean stopOnError = true;
@@ -70,6 +96,7 @@ public record WorkflowConfig(
         public Builder targetUser(String targetUser) { this.targetUser = targetUser; return this; }
         public Builder targetPassword(String targetPassword) { this.targetPassword = targetPassword; return this; }
         public Builder targetSchema(String targetSchema) { this.targetSchema = targetSchema; return this; }
+        public Builder targetDialect(DatabaseDialect targetDialect) { this.targetDialect = targetDialect; return this; }
         public Builder mode(WorkflowMode mode) { this.mode = mode; return this; }
         public Builder skipStep(MigrationStepId step) { this.skippedSteps.add(step); return this; }
         public Builder skippedSteps(Set<MigrationStepId> steps) { if (steps != null) this.skippedSteps.addAll(steps); return this; }
@@ -81,7 +108,7 @@ public record WorkflowConfig(
             return new WorkflowConfig(
                     sourceDsn, sourceUser, sourcePassword, sourceSchema,
                     targetDsn, targetUser, targetPassword, targetSchema,
-                    mode, skippedSteps, stopOnError, parallelWorkers, outputDir
+                    targetDialect, mode, skippedSteps, stopOnError, parallelWorkers, outputDir
             );
         }
     }

@@ -3,7 +3,7 @@ package com.zettais.db2db.core.workflow;
 import com.zettais.db2db.core.assessment.AssessmentEngine;
 import com.zettais.db2db.core.assessment.AssessmentReport;
 import com.zettais.db2db.core.config.Db2DbConfig;
-import com.zettais.db2db.core.ddl.PostgreSqlDdlGenerator;
+import com.zettais.db2db.core.ddl.TargetDdlGenerator;
 import com.zettais.db2db.core.extractor.JdbcMetadataExtractor;
 import com.zettais.db2db.core.extractor.MetadataExtractor;
 import com.zettais.db2db.core.extractor.OracleMetadataExtractor;
@@ -367,7 +367,7 @@ public class MigrationWorkflowOrchestrator {
         }
 
         Db2DbConfig coreCfg = toCoreConfig(config);
-        PostgreSqlDdlGenerator ddlGen = new PostgreSqlDdlGenerator(coreCfg);
+        TargetDdlGenerator ddlGen = TargetDdlGenerator.of(coreCfg);
         File outDir = new File(config.outputDir());
         outDir.mkdirs();
 
@@ -389,7 +389,7 @@ public class MigrationWorkflowOrchestrator {
         }
 
         Db2DbConfig coreCfg = toCoreConfig(config);
-        PostgreSqlDdlGenerator ddlGen = new PostgreSqlDdlGenerator(coreCfg);
+        TargetDdlGenerator ddlGen = TargetDdlGenerator.of(coreCfg);
 
         try (Connection conn = DriverManager.getConnection(config.targetDsn(), config.targetUser(), config.targetPassword());
              Statement stmt = conn.createStatement()) {
@@ -438,7 +438,7 @@ public class MigrationWorkflowOrchestrator {
     private void executeIndexes(WorkflowConfig config, List<String> logs, Map<String, Object> metrics) throws Exception {
         if (extractedCatalog == null) return;
         Db2DbConfig coreCfg = toCoreConfig(config);
-        PostgreSqlDdlGenerator ddlGen = new PostgreSqlDdlGenerator(coreCfg);
+        TargetDdlGenerator ddlGen = TargetDdlGenerator.of(coreCfg);
 
         try (Connection conn = DriverManager.getConnection(config.targetDsn(), config.targetUser(), config.targetPassword());
              Statement stmt = conn.createStatement()) {
@@ -468,7 +468,7 @@ public class MigrationWorkflowOrchestrator {
     private void executeForeignKeys(WorkflowConfig config, List<String> logs, Map<String, Object> metrics) throws Exception {
         if (extractedCatalog == null) return;
         Db2DbConfig coreCfg = toCoreConfig(config);
-        PostgreSqlDdlGenerator ddlGen = new PostgreSqlDdlGenerator(coreCfg);
+        TargetDdlGenerator ddlGen = TargetDdlGenerator.of(coreCfg);
 
         try (Connection conn = DriverManager.getConnection(config.targetDsn(), config.targetUser(), config.targetPassword());
              Statement stmt = conn.createStatement()) {
@@ -705,6 +705,7 @@ public class MigrationWorkflowOrchestrator {
         c.setTargetUser(cfg.targetUser());
         c.setTargetPassword(cfg.targetPassword());
         c.setTargetSchema(cfg.targetSchema());
+        c.setTargetDialect(cfg.targetDialect());
         c.setOutputPath(cfg.outputDir());
         c.setParallelWorkers(cfg.parallelWorkers());
         return c;

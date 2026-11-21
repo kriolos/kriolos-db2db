@@ -38,4 +38,14 @@ class Db2DbCliApplicationTest {
         int exitCode = cmd.execute("convert-sql", "SELECT NVL(amount, 0) FROM DUAL;");
         assertThat(exitCode).isEqualTo(0);
     }
+
+    @Test
+    void testTargetDialectOption() {
+        Db2DbCliApplication app = new Db2DbCliApplication();
+        CommandLine cmd = new CommandLine(app);
+        cmd.parseArgs("--target", "mariadb", "--schema", "HR");
+        var cfg = app.resolveConfig();
+        assertThat(cfg.getTargetDialect()).isEqualTo(com.zettais.db2db.core.model.DatabaseDialect.MARIADB);
+        assertThat(cfg.getSourceSchema()).isEqualTo("HR");
+    }
 }

@@ -5,11 +5,12 @@ import com.zettais.db2db.core.assessment.AssessmentEngine;
 import com.zettais.db2db.core.assessment.AssessmentReport;
 import com.zettais.db2db.core.assessment.AssessmentReportGenerator;
 import com.zettais.db2db.core.config.Db2DbConfig;
-import com.zettais.db2db.core.ddl.PostgreSqlDdlGenerator;
+import com.zettais.db2db.core.ddl.TargetDdlGenerator;
 import com.zettais.db2db.core.extractor.JdbcMetadataExtractor;
 import com.zettais.db2db.core.extractor.MetadataExtractor;
 import com.zettais.db2db.core.extractor.OracleMetadataExtractor;
 import com.zettais.db2db.core.model.DatabaseCatalog;
+import com.zettais.db2db.core.model.DatabaseDialect;
 import com.zettais.db2db.core.model.Table;
 import com.zettais.db2db.core.streaming.DataStreamingEngine;
 import com.zettais.db2db.core.transpiler.PlSqlTranspiler;
@@ -51,6 +52,9 @@ public class Db2DbCliApplication implements Callable<Integer> {
     @Option(names = {"-o", "--output"}, description = "Output directory for generated files")
     protected String outputDir;
 
+    @Option(names = {"-t", "--target"}, description = "Target database dialect (postgresql, mariadb)", defaultValue = "postgresql")
+    protected String targetDialect;
+
     @Override
     public Integer call() {
         CommandLine.usage(this, System.out);
@@ -73,6 +77,13 @@ public class Db2DbCliApplication implements Callable<Integer> {
         }
         if (schema != null) config.setSourceSchema(schema);
         if (outputDir != null) config.setOutputPath(outputDir);
+        if (targetDialect != null && !targetDialect.isBlank()) {
+            try {
+                config.setTargetDialect(DatabaseDialect.valueOf(targetDialect.toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException e) {
+                System.err.println("Unknown target dialect: " + targetDialect + ", falling back to POSTGRESQL");
+            }
+        }
         return config;
     }
 
@@ -218,7 +229,7 @@ public class Db2DbCliApplication implements Callable<Integer> {
                 MetadataExtractor extractor = parent.getExtractor(cfg);
                 DatabaseCatalog catalog = extractor.extractCatalog(conn, cfg.getSourceSchema());
 
-                PostgreSqlDdlGenerator ddlGen = new PostgreSqlDdlGenerator(cfg);
+                TargetDdlGenerator ddlGen = TargetDdlGenerator.of(cfg);
                 File outDir = new File(cfg.getOutputPath());
                 outDir.mkdirs();
 
@@ -353,28 +364,29 @@ public class Db2DbCliApplication implements Callable<Integer> {
                 }
             }
 
-            WorkflowConfig wfConfig = new WorkflowConfig(
-                    cfg.getSourceDsn(),
-                    cfg.getSourceUser(),
-                    cfg.getSourcePassword(),
-                    cfg.getSourceSchema(),
-                    cfg.getTargetDsn(),
-                    cfg.getTargetUser(),
-                    cfg.getTargetPassword(),
-                    cfg.getTargetSchema(),
-                    mode,
-                    skipped,
-                    !continueOnError,
-                    workers,
-                    cfg.getOutputPath()
-            );
+            WorkflowConfig wfConfig = WorkflowConfig.builder()
+                    .sourceDsn(cfg.getSourceDsn())
+                    .sourceUser(cfg.getSourceUser())
+                    .sourcePassword(cfg.getSourcePassword())
+                    .sourceSchema(cfg.getSourceSchema())
+                    .targetDsn(cfg.getTargetDsn())
+                    .targetUser(cfg.getTargetUser())
+                    .targetPassword(cfg.getTargetPassword())
+                    .targetSchema(cfg.getTargetSchema())
+                    .targetDialect(cfg.getTargetDialect())
+                    .mode(mode)
+                    .skippedSteps(skipped)
+                    .stopOnError(!continueOnError)
+                    .parallelWorkers(workers)
+                    .outputDir(cfg.getOutputPath())
+                    .build();
 
             System.out.println("==================================================================");
             System.out.println("   DB2DB by ZettaIS - End-to-End Migration Workflow Engine");
             System.out.println("==================================================================");
             System.out.println(" Mode:           " + mode);
             System.out.println(" Source:         " + wfConfig.sourceDsn() + " (" + wfConfig.sourceSchema() + ")");
-            System.out.println(" Target:         " + wfConfig.targetDsn() + " (" + wfConfig.targetSchema() + ")");
+            System.out.println(" Target:         " + wfConfig.targetDsn() + " (" + wfConfig.targetSchema() + ") [" + wfConfig.targetDialect() + "]");
             System.out.println(" Parallelism:    " + wfConfig.parallelWorkers() + " Virtual Threads");
             System.out.println(" Output Folder:  " + wfConfig.outputDir());
             if (!skipped.isEmpty()) {
