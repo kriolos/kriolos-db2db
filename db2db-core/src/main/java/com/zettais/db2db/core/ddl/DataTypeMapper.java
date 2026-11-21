@@ -27,6 +27,7 @@ public class DataTypeMapper {
         register(new com.zettais.db2db.core.ddl.dialect.MySqlDataTypeMapper());
         register(new com.zettais.db2db.core.ddl.dialect.MssqlDataTypeMapper());
         register(new com.zettais.db2db.core.ddl.dialect.AnsiDataTypeMapper());
+        REGISTRY.put(DatabaseDialect.MARIADB, new com.zettais.db2db.core.ddl.dialect.MySqlDataTypeMapper());
     }
 
     private static void register(DialectDataTypeMapper mapper) {
