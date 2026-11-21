@@ -29,6 +29,7 @@ db2db/
 ├── mvnw / mvnw.cmd         # Maven Wrapper 3.10.0
 ├── .mvn/wrapper/           # Wrapper configuration
 ├── .github/workflows/      # GitHub Actions CI & Release automation
+├── ROADMAP.adoc            # Strategic multi-phase engineering roadmap
 ├── db2db-core/             # Migration engine, SPI extractors, DDL, i18n, transpiler, spatial, orchestrator
 ├── db2db-cli/              # Picocli-based standalone shaded CLI runner
 └── db2db-web/              # Quarkus 4 REST, WebSocket, OpenAPI, responsive single-page web dashboard
@@ -317,6 +318,19 @@ The repository is equipped with GitHub Actions automation:
 
 == 12. Quality & Verification
 
-* Reactor test suite: **38 automated unit and integration tests** passing with 0 failures, 0 errors.
+* Reactor test suite: **55 automated unit and integration tests** passing with 0 failures, 0 errors across `db2db-core`, `db2db-cli`, and `db2db-web`.
+* Oracle HR sample schema benchmark verifying PostgreSQL and MariaDB DDL fidelity.
 * Memory-efficient streaming using PostgreSQL `CopyManager` / `COPY FROM STDIN` with Virtual Threads.
 * PostGIS spatial converter verifying full polygon box expansions and EWKT geometry outputs.
+
+---
+
+== 13. Strategic Product Roadmap
+
+Refer to link:ROADMAP.adoc[ROADMAP.adoc] for the detailed multi-phase product roadmap:
+
+* *Phase 1 (Current / Q1)*: MariaDB end-to-end streaming parity, docker-compose multi-service topology, and UI dialect switcher.
+* *Phase 2 (Q2)*: Canonical Oracle benchmarks (Order Entry `OE`, Product Media `PM`, Sales History `SH`) and automated Testcontainers pipelines.
+* *Phase 3 (Q3)*: Semantic Procedural Transpilation 2.0 with ANTLR4 AST parser and package state emulation.
+* *Phase 4 (Q4)*: Change Data Capture (CDC) via Oracle LogMiner for zero-downtime continuous replication.
+* *Phase 5 (2027+)*: Cloud-Native Kubernetes Operator (`Db2DbOperator`) and distributed worker topologies.
