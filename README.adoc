@@ -7,7 +7,7 @@
 image:https://github.com/poolborges/migration_db2db/actions/workflows/ci.yml/badge.svg[CI Build & Test, link=https://github.com/poolborges/migration_db2db/actions/workflows/ci.yml]
 image:https://github.com/poolborges/migration_db2db/actions/workflows/release.yml/badge.svg[Publish Release, link=https://github.com/poolborges/migration_db2db/actions/workflows/release.yml]
 image:https://img.shields.io/badge/JDK-25-orange.svg[JDK 25, link=https://adoptium.net/]
-image:https://img.shields.io/badge/Quarkus-4.0.0.Beta2-blue.svg[Quarkus 4, link=https://quarkus.io/]
+image:https://img.shields.io/badge/Quarkus-4.0.0-blue.svg[Quarkus 4, link=https://quarkus.io/]
 image:https://img.shields.io/badge/GraalVM-CE%2025%20Native-brightgreen.svg[GraalVM CE 25]
 image:https://img.shields.io/badge/Maven%20Wrapper-3.10.0-C71A36.svg[Maven Wrapper 3.10.0]
 image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[License, link=LICENSE]
@@ -50,7 +50,7 @@ db2db/
 
 | `db2db-web`
 | Cloud-native interactive GUI and API service offering REST endpoints, real-time WebSocket progress streaming, Swagger UI, and responsive dashboard.
-| Quarkus 4.0.0.Beta2, RESTEasy Reactive, WebSockets Next, GraalVM Native Image.
+| Quarkus 4.0.0, RESTEasy Reactive, WebSockets Next, GraalVM Native Image.
 |===
 
 ---
