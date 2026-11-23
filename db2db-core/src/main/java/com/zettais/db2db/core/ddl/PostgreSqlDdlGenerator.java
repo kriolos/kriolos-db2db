@@ -8,10 +8,15 @@ import java.util.List;
 /**
  * Generates standards-compliant PostgreSQL DDL scripts from DatabaseCatalog models.
  */
-public class PostgreSqlDdlGenerator {
+public final class PostgreSqlDdlGenerator implements TargetDdlGenerator {
 
     private final Db2DbConfig config;
     private final DataTypeMapper typeMapper;
+
+    @Override
+    public DatabaseDialect getTargetDialect() {
+        return DatabaseDialect.POSTGRESQL;
+    }
 
     public PostgreSqlDdlGenerator(Db2DbConfig config) {
         this.config = config != null ? config : new Db2DbConfig();

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import com.zettais.db2db.core.i18n.Language;
+import com.zettais.db2db.core.model.DatabaseDialect;
 import com.zettais.db2db.core.workflow.*;
 import com.zettais.db2db.web.dto.StartWorkflowRequest;
 import com.zettais.db2db.web.ws.MigrationWebSocket;
@@ -92,6 +93,15 @@ public class WorkflowService {
             }
         }
 
+        DatabaseDialect dialect = DatabaseDialect.POSTGRESQL;
+        if (req.targetDialect() != null && !req.targetDialect().isBlank()) {
+            try {
+                dialect = DatabaseDialect.valueOf(req.targetDialect().trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                log.warn("Invalid target dialect: {}, falling back to POSTGRESQL", req.targetDialect());
+            }
+        }
+
         WorkflowConfig config = WorkflowConfig.builder()
                 .sourceDsn(req.sourceDsn())
                 .sourceUser(req.sourceUser())
@@ -101,6 +111,7 @@ public class WorkflowService {
                 .targetUser(req.targetUser())
                 .targetPassword(req.targetPassword())
                 .targetSchema(req.targetSchema())
+                .targetDialect(dialect)
                 .mode(mode)
                 .skippedSteps(skipped)
                 .stopOnError(req.stopOnError() == null || req.stopOnError())

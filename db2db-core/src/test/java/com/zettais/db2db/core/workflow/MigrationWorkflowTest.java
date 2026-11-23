@@ -42,6 +42,18 @@ class MigrationWorkflowTest {
         assertThat(config.isStepSkipped(MigrationStepId.PARALLEL_DATA_STREAMING)).isTrue();
         assertThat(config.isStepSkipped(MigrationStepId.SCHEMA_ASSESSMENT)).isFalse();
         assertThat(config.parallelWorkers()).isEqualTo(8);
+        assertThat(config.targetDialect()).isEqualTo(com.zettais.db2db.core.model.DatabaseDialect.POSTGRESQL);
+    }
+
+    @Test
+    @DisplayName("WorkflowConfig should support MariaDB target dialect")
+    void testWorkflowConfigMariaDb() {
+        WorkflowConfig config = WorkflowConfig.builder()
+                .targetDsn("jdbc:mariadb://localhost:3306/targetdb")
+                .targetDialect(com.zettais.db2db.core.model.DatabaseDialect.MARIADB)
+                .build();
+
+        assertThat(config.targetDialect()).isEqualTo(com.zettais.db2db.core.model.DatabaseDialect.MARIADB);
     }
 
     @Test

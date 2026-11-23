@@ -35,4 +35,10 @@ public class DatabaseCatalog {
     public void setPlSqlUnits(List<PlSqlUnit> plSqlUnits) { this.plSqlUnits = plSqlUnits; }
     public List<String> getInvalidObjects() { return invalidObjects; }
     public void setInvalidObjects(List<String> invalidObjects) { this.invalidObjects = invalidObjects; }
+
+    public void addTable(Table table) { this.tables.add(table); }
+    public void addSequence(Sequence sequence) { this.sequences.add(sequence); }
+    public void addView(View view) { this.views.add(view); }
+    public void addTrigger(Trigger trigger) { this.triggers.add(trigger); }
+    public void addPlSqlUnit(PlSqlUnit unit) { this.plSqlUnits.add(unit); }
 }

@@ -249,7 +249,7 @@
                         <label id="wfActiveRouteLabel">Active Database Route</label>
                         <div style="background:var(--bg-subtle); border:1px solid var(--border); border-radius:6px; padding:0.85rem; font-size:0.85rem; line-height:1.6;">
                             <div><strong id="wfSourceLabel">Source:</strong> <span id="wfSrcPreview" style="color:var(--primary); font-family:'JetBrains Mono', monospace;">jdbc:oracle:thin:@localhost:1521/XEPDB1</span> (<span id="wfSrcUserPreview">OSADMIN</span>)</div>
-                            <div><strong id="wfTargetLabel">Target:</strong> <span id="wfTgtPreview" style="color:var(--success); font-family:'JetBrains Mono', monospace;">jdbc:postgresql://localhost:5432/postgres</span> (<span id="wfTgtUserPreview">postgres</span>)</div>
+                            <div><strong id="wfTargetLabel">Target:</strong> <span id="wfTgtDialectBadge" class="badge badge-status" style="margin-right:0.35rem; font-size:0.75rem;">POSTGRESQL</span><span id="wfTgtPreview" style="color:var(--success); font-family:'JetBrains Mono', monospace;">jdbc:postgresql://localhost:5432/postgres</span> (<span id="wfTgtUserPreview">postgres</span>)</div>
                             <div id="wfManageCredsHint" style="font-size:0.75rem; color:var(--text-subtle); margin-top:0.35rem;">Manage credentials in <em>Database Connections</em> tab.</div>
                         </div>
                     </div>
@@ -552,13 +552,18 @@ END;
                     <input type="password" id="cfgSrcPwd" value="Passw0rd" oninput="updateActiveConnLabel()">
                 </div>
                 <div class="card">
-                    <div class="card-title">Target Database (PostgreSQL)</div>
-                    <label>JDBC URL</label>
-                    <input type="text" id="cfgTgtDsn" value="jdbc:postgresql://localhost:5432/postgres">
-                    <label>Username</label>
-                    <input type="text" id="cfgTgtUser" value="postgres">
-                    <label>Password</label>
-                    <input type="password" id="cfgTgtPwd" value="secret">
+                    <div class="card-title" id="cfgTargetTitle">Target Database</div>
+                    <label id="cfgTargetDialectLabel">Target Database Dialect</label>
+                    <select id="cfgTargetDialect" onchange="onTargetDialectChange(this.value)">
+                        <option id="cfgTargetDialectPg" value="POSTGRESQL" selected>PostgreSQL (17+ / PostGIS)</option>
+                        <option id="cfgTargetDialectMaria" value="MARIADB">MariaDB (10.3+ / 11.x)</option>
+                    </select>
+                    <label id="cfgTgtDsnLabel">JDBC URL</label>
+                    <input type="text" id="cfgTgtDsn" value="jdbc:postgresql://localhost:5432/targetdb" oninput="updateActiveConnLabel()">
+                    <label id="cfgTgtUserLabel">Username</label>
+                    <input type="text" id="cfgTgtUser" value="postgres" oninput="updateActiveConnLabel()">
+                    <label id="cfgTgtPwdLabel">Password</label>
+                    <input type="password" id="cfgTgtPwd" value="secretpassword" oninput="updateActiveConnLabel()">
                 </div>
             </div>
             <div id="connStatus"></div>
@@ -569,14 +574,18 @@ END;
         <div id="tab-ddl" class="tab-content">
             <div class="card">
                 <div class="card-title">
-                    <span id="ddlTitleText">Export PostgreSQL Schema DDL</span>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <span id="ddlTitleText">Export Target Schema DDL</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <select id="ddlTargetDialect" style="margin-bottom: 0; padding: 0.35rem 0.6rem; font-size: 0.85rem;" onchange="syncTargetDialect(this.value)">
+                            <option value="POSTGRESQL" selected>PostgreSQL</option>
+                            <option value="MARIADB">MariaDB</option>
+                        </select>
                         <button id="btnGenerateDdl" class="btn-primary" onclick="generateDdl()">Generate DDL</button>
                         <button id="btnCopyDdl" class="btn-outline" onclick="copyDdlOutput()" title="Copy DDL to Clipboard">📋 Copy</button>
                         <button id="btnDownloadDdl" class="btn-outline" onclick="downloadDdlOutput()" title="Download DDL as SQL file">📥 Download</button>
                     </div>
                 </div>
-                <textarea id="ddlOutput" class="code-editor" readonly placeholder="Generated PostgreSQL DDL script will be shown here..."></textarea>
+                <textarea id="ddlOutput" class="code-editor" readonly placeholder="Generated target DDL script will be shown here..."></textarea>
             </div>
         </div>
 
@@ -630,7 +639,7 @@ END;
                     </thead>
                     <tbody>
                         <tr><td><strong>Core Runtime</strong></td><td>Temurin OpenJDK 25 / GraalVM CE 25</td><td>Virtual Threads (JEP 444+), Records, Pattern Matching, Text Blocks</td></tr>
-                        <tr><td><strong>Microservices Engine</strong></td><td>Quarkus 4 (4.0.0.Beta2)</td><td>Quarkus REST, Picocli, WebSockets Next, Arc CDI, Sub-10ms Native Compilation</td></tr>
+                        <tr><td><strong>Microservices Engine</strong></td><td>Quarkus 4 (4.0.0)</td><td>Quarkus REST, Picocli, WebSockets Next, Arc CDI, Sub-10ms Native Compilation</td></tr>
                         <tr><td><strong>Target Database</strong></td><td>PostgreSQL 16 / 17+</td><td>PostGIS, btree_gin, uuid-ossp, pg_trgm, CopyManager Binary Streaming</td></tr>
                         <tr><td><strong>Source Connectors</strong></td><td>Oracle JDBC 23c / MySQL / MSSQL</td><td>High-throughput streaming cursor extractors with dictionary optimization</td></tr>
                         <tr><td><strong>Vendor & Distribution</strong></td><td>ZettaIS</td><td>Enterprise Multi-Dialect Platform &bull; Clean Architecture &bull; 0 Legacy Dependencies</td></tr>
@@ -785,7 +794,9 @@ END;
 
             // Update DDL exporter buttons
             const ddlTitle = document.getElementById('ddlTitleText');
-            if (ddlTitle) ddlTitle.innerText = t('ddl.title', 'Export PostgreSQL Schema DDL');
+            if (ddlTitle) ddlTitle.innerText = t('ddl.title', 'Export Target Schema DDL');
+            const ddlPlaceholder = document.getElementById('ddlOutput');
+            if (ddlPlaceholder) ddlPlaceholder.placeholder = t('ddl.placeholder', 'Generated target DDL script will be shown here...');
             const btnGenerateDdl = document.getElementById('btnGenerateDdl');
             if (btnGenerateDdl) btnGenerateDdl.innerText = t('ddl.btn.generate', 'Generate DDL');
             const btnCopyDdl = document.getElementById('btnCopyDdl');
@@ -794,6 +805,16 @@ END;
             }
             const btnDownloadDdl = document.getElementById('btnDownloadDdl');
             if (btnDownloadDdl) btnDownloadDdl.innerText = t('ddl.btn.download', '📥 Download DDL (.sql)');
+
+            // Update Database Connections Tab
+            const cfgTargetTitle = document.getElementById('cfgTargetTitle');
+            if (cfgTargetTitle) cfgTargetTitle.innerText = t('cfg.target.title', 'Target Database');
+            const cfgTargetDialectLabel = document.getElementById('cfgTargetDialectLabel');
+            if (cfgTargetDialectLabel) cfgTargetDialectLabel.innerText = t('cfg.targetDialect', 'Target Database Dialect');
+            const cfgTargetDialectPg = document.getElementById('cfgTargetDialectPg');
+            if (cfgTargetDialectPg) cfgTargetDialectPg.innerText = t('cfg.targetDialect.postgres', 'PostgreSQL (17+ / PostGIS)');
+            const cfgTargetDialectMaria = document.getElementById('cfgTargetDialectMaria');
+            if (cfgTargetDialectMaria) cfgTargetDialectMaria.innerText = t('cfg.targetDialect.mariadb', 'MariaDB (10.3+ / 11.x)');
 
             // Update About Tab
             const aboutLead = document.getElementById('aboutLeadText');
@@ -1130,11 +1151,15 @@ END;
         // --- DDL Exporter Actions (Generate, Copy, Download) ---
         async function generateDdl() {
             const schema = document.getElementById('assessSchema')?.value || 'OSADMIN';
+            const targetDialect = document.getElementById('ddlTargetDialect')?.value 
+                               || document.getElementById('cfgTargetDialect')?.value 
+                               || 'POSTGRESQL';
             const body = {
                 sourceDsn: document.getElementById('cfgSrcDsn').value,
                 sourceUser: document.getElementById('cfgSrcUser').value,
                 sourcePassword: document.getElementById('cfgSrcPwd').value,
-                schema: schema
+                schema: schema,
+                targetDialect: targetDialect
             };
             const res = await fetch('/api/v1/export/schema', {
                 method: 'POST',
@@ -1221,16 +1246,55 @@ END;
             const srcUser = document.getElementById('cfgSrcUser')?.value || 'OSADMIN';
             const tgtDsn = document.getElementById('cfgTgtDsn')?.value || 'jdbc:postgresql://localhost:5432/postgres';
             const tgtUser = document.getElementById('cfgTgtUser')?.value || 'postgres';
+            const tgtDialect = document.getElementById('cfgTargetDialect')?.value || 'POSTGRESQL';
 
             const elSrc = document.getElementById('wfSrcPreview');
             const elSrcUser = document.getElementById('wfSrcUserPreview');
             const elTgt = document.getElementById('wfTgtPreview');
             const elTgtUser = document.getElementById('wfTgtUserPreview');
+            const elTgtBadge = document.getElementById('wfTgtDialectBadge');
 
             if (elSrc) elSrc.innerText = srcDsn;
             if (elSrcUser) elSrcUser.innerText = srcUser;
             if (elTgt) elTgt.innerText = tgtDsn;
             if (elTgtUser) elTgtUser.innerText = tgtUser;
+            if (elTgtBadge) {
+                elTgtBadge.innerText = tgtDialect;
+                elTgtBadge.style.background = tgtDialect === 'MARIADB' ? '#0284c7' : 'var(--success)';
+                elTgtBadge.style.color = '#fff';
+            }
+        }
+
+        function onTargetDialectChange(dialect) {
+            const tgtDsnInput = document.getElementById('cfgTgtDsn');
+            const tgtUserInput = document.getElementById('cfgTgtUser');
+            const ddlDialect = document.getElementById('ddlTargetDialect');
+            if (ddlDialect) ddlDialect.value = dialect;
+
+            if (dialect === 'MARIADB') {
+                if (tgtDsnInput && (tgtDsnInput.value.includes('5432') || tgtDsnInput.value.includes('postgresql'))) {
+                    tgtDsnInput.value = 'jdbc:mariadb://localhost:3306/targetdb';
+                }
+                if (tgtUserInput && tgtUserInput.value === 'postgres') {
+                    tgtUserInput.value = 'mariadb';
+                }
+            } else if (dialect === 'POSTGRESQL') {
+                if (tgtDsnInput && (tgtDsnInput.value.includes('3306') || tgtDsnInput.value.includes('mariadb'))) {
+                    tgtDsnInput.value = 'jdbc:postgresql://localhost:5432/targetdb';
+                }
+                if (tgtUserInput && tgtUserInput.value === 'mariadb') {
+                    tgtUserInput.value = 'postgres';
+                }
+            }
+            updateWorkflowRoutePreview();
+        }
+
+        function syncTargetDialect(dialect) {
+            const cfgSelect = document.getElementById('cfgTargetDialect');
+            if (cfgSelect && cfgSelect.value !== dialect) {
+                cfgSelect.value = dialect;
+                onTargetDialectChange(dialect);
+            }
         }
 
         function renderStepCheckboxes() {
@@ -1397,6 +1461,7 @@ END;
             const targetDsn = document.getElementById('cfgTgtDsn')?.value || 'jdbc:postgresql://localhost:5432/postgres';
             const targetUser = document.getElementById('cfgTgtUser')?.value || 'postgres';
             const targetPassword = document.getElementById('cfgTgtPwd')?.value || '';
+            const targetDialect = document.getElementById('cfgTargetDialect')?.value || 'POSTGRESQL';
             const mode = document.getElementById('wfMode')?.value || 'AUTOMATIC';
             const stopOnError = document.getElementById('wfStopOnError')?.checked ?? true;
             const workers = parseInt(document.getElementById('wfWorkers')?.value || '4', 10);
@@ -1419,16 +1484,16 @@ END;
                 targetUser: targetUser,
                 targetPassword: targetPassword,
                 targetSchema: 'public',
+                targetDialect: targetDialect,
                 mode: mode,
                 skippedSteps: skippedSteps,
                 stopOnError: stopOnError,
                 parallelWorkers: workers,
                 language: currentLang
             };
-            };
 
             clearWorkflowLogs();
-            appendWorkflowLog(`Starting End-to-End Migration in ${mode} mode...`);
+            appendWorkflowLog(`Starting End-to-End Migration to ${targetDialect} in ${mode} mode...`);
 
             try {
                 const res = await fetch('/api/v1/workflow/start', {

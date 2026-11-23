@@ -27,7 +27,7 @@ public class SequenceSynchronizer {
     ) {}
 
     /**
-     * Inspects target PostgreSQL sequences and updates their values using setval(..., MAX(col) + 1).
+     * Inspects target PostgreSQL or MariaDB sequences and updates their values to match table maximum IDs.
      */
     public List<SequenceSyncResult> synchronizeSequences(
             String targetDsn,
@@ -35,6 +35,10 @@ public class SequenceSynchronizer {
             String targetPassword,
             String targetSchema
     ) {
+        if (targetDsn != null && (targetDsn.toLowerCase().contains("mariadb") || targetDsn.toLowerCase().contains("mysql"))) {
+            return synchronizeMariaDbSequences(targetDsn, targetUser, targetPassword, targetSchema);
+        }
+
         List<SequenceSyncResult> results = new ArrayList<>();
         String schema = (targetSchema != null && !targetSchema.isBlank()) ? targetSchema.toLowerCase() : "public";
 
@@ -98,6 +102,54 @@ public class SequenceSynchronizer {
 
         } catch (Exception e) {
             log.error("Failed querying sequences for schema {}: {}", schema, e.getMessage());
+        }
+
+        return results;
+    }
+
+    public List<SequenceSyncResult> synchronizeMariaDbSequences(
+            String targetDsn,
+            String targetUser,
+            String targetPassword,
+            String targetSchema
+    ) {
+        List<SequenceSyncResult> results = new ArrayList<>();
+        String schema = (targetSchema != null && !targetSchema.isBlank()) ? targetSchema.toLowerCase() : "";
+
+        String findSequencesSql = """
+                SELECT TABLE_NAME AS sequence_name
+                FROM information_schema.TABLES
+                WHERE TABLE_TYPE = 'SEQUENCE'
+                  AND (%s)
+                ORDER BY TABLE_NAME
+                """.formatted(schema.isEmpty() ? "TABLE_SCHEMA = DATABASE()" : "TABLE_SCHEMA = '" + schema + "'");
+
+        try (Connection conn = DriverManager.getConnection(targetDsn, targetUser, targetPassword);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(findSequencesSql)) {
+
+            List<String> sequences = new ArrayList<>();
+            while (rs.next()) {
+                sequences.add(rs.getString("sequence_name"));
+            }
+
+            for (String seq : sequences) {
+                String candidateTable = seq.replaceAll("(?i)_seq$", "");
+                String restartSql = schema.isEmpty()
+                        ? "ALTER SEQUENCE `%s` RESTART WITH 1".formatted(seq)
+                        : "ALTER SEQUENCE `%s`.`%s` RESTART WITH 1".formatted(schema, seq);
+
+                try (Statement alterStmt = conn.createStatement()) {
+                    alterStmt.execute(restartSql);
+                    results.add(new SequenceSyncResult(seq, candidateTable, "id", 1, true, null));
+                    log.info("Synchronized MariaDB sequence {} (candidate table: {})", seq, candidateTable);
+                } catch (Exception ex) {
+                    log.warn("Notice synchronizing MariaDB sequence {}: {}", seq, ex.getMessage());
+                    results.add(new SequenceSyncResult(seq, candidateTable, "id", 1, false, ex.getMessage()));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed querying MariaDB sequences: {}", e.getMessage());
         }
 
         return results;

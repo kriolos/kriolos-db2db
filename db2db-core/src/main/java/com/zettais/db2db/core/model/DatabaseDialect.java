@@ -8,6 +8,8 @@ import java.util.Locale;
 public enum DatabaseDialect {
     ORACLE,
     MYSQL,
+    MARIADB,
+    POSTGRESQL,
     MSSQL,
     ANSI;
 
@@ -20,7 +22,9 @@ public enum DatabaseDialect {
         }
         var lower = dsn.toLowerCase(Locale.ROOT);
         if (lower.contains("oracle")) return ORACLE;
-        if (lower.contains("mysql") || lower.contains("mariadb")) return MYSQL;
+        if (lower.contains("mariadb")) return MARIADB;
+        if (lower.contains("mysql")) return MYSQL;
+        if (lower.contains("postgres") || lower.contains("pgsql")) return POSTGRESQL;
         if (lower.contains("sqlserver") || lower.contains("jtds") || lower.contains("mssql")) return MSSQL;
         return ANSI;
     }

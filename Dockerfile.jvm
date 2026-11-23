@@ -1,0 +1,53 @@
+# ==============================================================================
+# Stage 1: Build DB2DB Platform with OpenJDK 25 and Maven Wrapper
+# ==============================================================================
+FROM eclipse-temurin:25-jdk AS build
+WORKDIR /workspace
+
+# Copy Maven Wrapper and POM definitions for dependency caching
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+COPY db2db-core/pom.xml db2db-core/
+COPY db2db-cli/pom.xml db2db-cli/
+COPY db2db-web/pom.xml db2db-web/
+
+# Download dependencies offline
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B || true
+
+# Copy source trees and default configuration
+COPY db2db-core/src db2db-core/src
+COPY db2db-cli/src db2db-cli/src
+COPY db2db-web/src db2db-web/src
+COPY db2db.conf ./
+
+# Compile and package production artifacts
+RUN ./mvnw clean package -DskipTests -B --no-transfer-progress
+
+# ==============================================================================
+# Stage 2: Runtime Image with Eclipse Temurin 25 JRE
+# ==============================================================================
+FROM eclipse-temurin:25-jre-noble
+
+ENV LANGUAGE='en_US:en' \
+    LANG='en_US.UTF-8' \
+    TZ='UTC' \
+    JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+WORKDIR /deployments
+
+# Run with least-privilege non-root user (UID 1001)
+RUN groupadd -r db2db --gid=1001 && \
+    useradd -r -g db2db --uid=1001 -d /deployments -s /sbin/nologin -c "DB2DB Service User" db2db && \
+    mkdir -p /deployments/conf /deployments/reports && \
+    chown -R 1001:1001 /deployments
+
+COPY --from=build --chown=1001:1001 /workspace/db2db-web/target/quarkus-app/lib/ /deployments/lib/
+COPY --from=build --chown=1001:1001 /workspace/db2db-web/target/quarkus-app/*.jar /deployments/
+COPY --from=build --chown=1001:1001 /workspace/db2db-web/target/quarkus-app/app/ /deployments/app/
+COPY --from=build --chown=1001:1001 /workspace/db2db-web/target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY --from=build --chown=1001:1001 /workspace/db2db.conf /deployments/conf/db2db.conf
+
+USER 1001
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-Dquarkus.http.host=0.0.0.0", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager", "-jar", "/deployments/quarkus-run.jar"]
