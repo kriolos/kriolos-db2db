@@ -1,0 +1,100 @@
+= Guia de Gravação de Demonstração e Criação de GIFs Animados
+:toc: left
+:icons: font
+:source-highlighter: highlight.js
+
+== 1. Visão Geral
+
+Este documento detalha o procedimento padronizado para execução em modo de desenvolvimento (`dev mode`) de aplicações web (ex: Quarkus, Spring Boot, Node.js) e geração automatizada de animações em formato `.gif` de alta definição e tamanho otimizado para inclusão em `README.adoc` e portais de documentação.
+
+== 2. Arquitetura da Solução
+
+[plantuml, format=svg]
+....
+@startuml
+skinparam handwritten false
+skinparam monochrome false
+skinparam packageStyle rectangle
+
+actor "Developer / CI" as Dev
+node "Quarkus Dev Mode" as App {
+  [Web Dashboard :8080]
+}
+package "Automated Capture" {
+  [Playwright Headless Chromium]
+  [Sequential Frames (PNG)]
+}
+package "Media Processing" {
+  [FFmpeg Pass 1: PaletteGen]
+  [FFmpeg Pass 2: PaletteUse]
+  [db2db-web-demo.gif]
+}
+
+Dev -> App : Inicia dev mode
+Playwright -> App : Navega fluxos e tabs
+Playwright -> [Sequential Frames (PNG)] : Salva frames 1280x820
+[Sequential Frames (PNG)] -> [FFmpeg Pass 1: PaletteGen] : Análise de cores
+[FFmpeg Pass 1: PaletteGen] -> [FFmpeg Pass 2: PaletteUse] : Paleta 256 cores otimizada
+[FFmpeg Pass 2: PaletteUse] -> [db2db-web-demo.gif] : Gera GIF com loop infinito
+@enduml
+....
+
+== 3. Execução Passo a Passo
+
+=== Passo 1: Inicializar a Aplicação em Dev Mode
+[source,bash]
+----
+./mvnw quarkus:dev -pl db2db-web -Dquarkus.http.port=8080 -Dquarkus.http.host=0.0.0.0
+----
+
+=== Passo 2: Script de Captura Playwright (`capture_screens.py`)
+[source,python]
+----
+import time
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page(viewport={"width": 1280, "height": 820})
+    page.goto("http://localhost:8080/index.html")
+    page.wait_for_load_state("networkidle")
+    
+    # Capturar frames sequenciais
+    page.screenshot(path="frames/frame_01.png")
+    page.click("#nav-tab-transpile")
+    time.sleep(1)
+    page.screenshot(path="frames/frame_02.png")
+    browser.close()
+----
+
+=== Passo 3: Geração do GIF em Duas Passagens com FFmpeg
+
+[source,bash]
+----
+# 1. Definir lista de frames e tempos de exibição (input_frames.txt)
+cat << 'EOF' > input_frames.txt
+file 'frames/frame_01.png'
+duration 2.5
+file 'frames/frame_02.png'
+duration 2.5
+file 'frames/frame_02.png'
+EOF
+
+# 2. Pass 1: Gerar paleta de 256 cores com estatísticas de diferença
+ffmpeg -f concat -safe 0 -i input_frames.txt \
+  -vf "fps=10,scale=1024:-1:flags=lanczos,palettegen=stats_mode=diff" \
+  -y palette.png
+
+# 3. Pass 2: Aplicar paleta com dithering Bayer e loop contínuo
+ffmpeg -f concat -safe 0 -i input_frames.txt \
+  -i palette.png \
+  -lavfi "fps=10,scale=1024:-1:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=3" \
+  -loop 0 \
+  -y docs/assets/db2db-web-demo.gif
+----
+
+== 4. Benefícios Obtidos
+
+* **Consistência Visual**: Interface renderizada sempre com a mesma escala e tipografia nítida.
+* **Tamanho Compacto**: Apenas ~720 KB para uma demonstração completa de 25 segundos navegando por 6 abas.
+* **Automação Total**: Pode ser integrado a pipelines de CI para atualizar os assets visuais a cada nova funcionalidade adicionada.

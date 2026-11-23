@@ -241,6 +241,8 @@ java -jar db2db-cli/target/quarkus-app/quarkus-run.jar convert-sql \
 
 == 9. Web Dashboard & REST API (`db2db-web`)
 
+image::docs/assets/db2db-web-demo.gif[DB2DB by ZettaIS - Interactive Web Dashboard Demo,width=100%,align="center"]
+
 Run the application either via JVM fast-jar or native binary:
 
 [source,bash]
